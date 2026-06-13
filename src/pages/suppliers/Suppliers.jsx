@@ -7,6 +7,7 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2, FiDollarSign, FiShoppingBag } from 'react-icons/fi';
+import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 const emptyForm = { name: '', phone: '', address: '' };
 
@@ -33,6 +34,7 @@ export default function Suppliers() {
   };
 
   useEffect(() => { fetchSuppliers(); }, []);
+  useAutoRefresh(fetchSuppliers, 30000);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 

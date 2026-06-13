@@ -7,11 +7,16 @@ export default function Layout() {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ minHeight: '100vh', background: '#F1F5F9' }}>
       <Sidebar isOpen={isOpen} />
       <Navbar isOpen={isOpen} onToggle={() => setIsOpen(!isOpen)} />
-      <main className={`pt-16 transition-all duration-300 ${isOpen ? 'ml-64' : 'ml-16'}`}>
-        <div className="p-6">
+      <main style={{
+        paddingTop: '64px',
+        marginLeft: isOpen ? '220px' : '64px',
+        transition: 'margin-left 0.3s ease',
+        minHeight: '100vh'
+      }}>
+        <div style={{ padding: '24px' }}>
           <Outlet />
         </div>
       </main>

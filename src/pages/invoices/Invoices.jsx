@@ -9,6 +9,7 @@ import Input from '../../components/common/Input';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
 import { FiPlus, FiTrash2, FiDownload } from 'react-icons/fi';
+import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 const statusVariant = { brouillon: 'default', émise: 'info', payée: 'success' };
 
@@ -41,6 +42,7 @@ export default function Invoices() {
   };
 
   useEffect(() => { fetchAll(); }, []);
+  useAutoRefresh(fetchAll, 60000);
 
   const handleClientSelect = (id) => {
     const client = clients.find(c => c._id === id);

@@ -8,6 +8,7 @@ import Input from '../../components/common/Input';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 const emptyForm = { title: '', category: 'autre', amount: '', date: '', note: '' };
 
@@ -41,6 +42,7 @@ export default function Expenses() {
   };
 
   useEffect(() => { fetchExpenses(); }, []);
+  useAutoRefresh(fetchExpenses, 60000);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 

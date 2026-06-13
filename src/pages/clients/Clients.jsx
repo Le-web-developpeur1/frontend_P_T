@@ -8,6 +8,7 @@ import Input from '../../components/common/Input';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2, FiDollarSign } from 'react-icons/fi';
+import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 const emptyForm = { name: '', phone: '', address: '', creditLimit: 0 };
 
@@ -30,8 +31,10 @@ export default function Clients() {
     } catch { toast.error('Erreur chargement clients'); }
     finally { setLoading(false); }
   };
-
   useEffect(() => { fetchClients(); }, []);
+  useAutoRefresh(fetchClients, 30000);
+
+
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 

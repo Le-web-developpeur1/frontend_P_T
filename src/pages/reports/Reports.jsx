@@ -37,6 +37,7 @@ export default function Reports() {
     } catch { toast.error('Erreur chargement rapport'); }
     finally { setLoading(false); }
   };
+  
 
   const handleExport = async (format) => {
     setExporting(true);

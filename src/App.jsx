@@ -10,6 +10,9 @@ import Sales from './pages/sales/Sales';
 import Invoices from './pages/invoices/Invoices';
 import Expenses from './pages/expenses/Expenses';
 import Reports from './pages/reports/Reports';
+import Users from './pages/users/Users';
+import Damages from './pages/damages/Damages';
+import Credits from './pages/credits/Credits';
 import Settings from './pages/settings/Settings';
 import Loader from './components/common/Loader';
 
@@ -30,11 +33,14 @@ export default function App() {
         <Route index element={<Dashboard />} />
         <Route path="products" element={<Products />} />
         <Route path="clients" element={<Clients />} />
+        <Route path='credits' element={<Credits />} />
         <Route path="suppliers" element={<Suppliers />} />
         <Route path="sales" element={<Sales />} />
         <Route path="invoices" element={<Invoices />} />
         <Route path="expenses" element={<Expenses />} />
         <Route path="reports" element={<Reports />} />
+        <Route path="users" element={<Users />} />
+        <Route path="damages" element={<Damages />} />
         <Route path="settings" element={<Settings />} />
       </Route>
     </Routes>

@@ -8,6 +8,7 @@ import Input from '../../components/common/Input';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2, FiPackage, FiAlertTriangle } from 'react-icons/fi';
+import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 const emptyForm = {
   name: '', category: '', stockCartons: 0, stockKg: 0,
@@ -40,6 +41,7 @@ export default function Products() {
   };
 
   useEffect(() => { fetchProducts(); }, []);
+  useAutoRefresh(fetchProducts, 30000);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
   const handleStockChange = (e) => setStockForm({ ...stockForm, [e.target.name]: e.target.value });
