@@ -11,24 +11,44 @@ import toast from 'react-hot-toast';
 import { FiPlus, FiTrash2, FiDownload } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
-const statusVariant = { brouillon: 'default', émise: 'info', payée: 'success' };
+const statusVariant: Record<string, 'default' | 'info' | 'success' | 'warning' | 'danger'> = {
+  brouillon: 'default', émise: 'info', payée: 'success'
+};
+
+interface InvoiceItem {
+  designation: string;
+  quantity: number | string;
+  unit: string;
+  unitPrice: number | string;
+  total: number;
+}
+
+interface InvoiceForm {
+  clientName: string;
+  clientAddress: string;
+  client: string;
+  discount: number;
+  tva: number;
+  paymentConditions: string;
+  items: InvoiceItem[];
+}
 
 export default function Invoices() {
-  const [invoices, setInvoices]   = useState([]);
-  const [clients, setClients]     = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [selected, setSelected]   = useState(null);
-  const [saving, setSaving]       = useState(false);
-  const [downloading, setDownloading] = useState(null);
+  const [invoices, setInvoices]       = useState<any[]>([]);
+  const [clients, setClients]         = useState<any[]>([]);
+  const [loading, setLoading]         = useState<boolean>(true);
+  const [modalOpen, setModalOpen]     = useState<boolean>(false);
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [selected, setSelected]       = useState<any>(null);
+  const [saving, setSaving]           = useState<boolean>(false);
+  const [downloading, setDownloading] = useState<string | null>(null);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<InvoiceForm>({
     clientName: '', clientAddress: '', client: '',
     discount: 0, tva: 0, paymentConditions: '', items: []
   });
 
-  const [currentItem, setCurrentItem] = useState({
+  const [currentItem, setCurrentItem] = useState<InvoiceItem>({
     designation: '', quantity: 1, unit: 'Carton', unitPrice: 0, total: 0
   });
 
@@ -44,7 +64,7 @@ export default function Invoices() {
   useEffect(() => { fetchAll(); }, []);
   useAutoRefresh(fetchAll, 60000);
 
-  const handleClientSelect = (id) => {
+  const handleClientSelect = (id: string) => {
     const client = clients.find(c => c._id === id);
     setForm(f => ({
       ...f,
@@ -54,25 +74,26 @@ export default function Invoices() {
     }));
   };
 
-  const updateItemTotal = (item) => ({
+  const updateItemTotal = (item: InvoiceItem): InvoiceItem => ({
     ...item,
     total: Number(item.quantity) * Number(item.unitPrice)
   });
 
   const addItem = () => {
     if (!currentItem.designation || !currentItem.quantity || !currentItem.unitPrice) {
-      toast.error('Remplissez tous les champs de l\'article');
+      toast.error("Remplissez tous les champs de l'article");
       return;
     }
     setForm(f => ({ ...f, items: [...f.items, updateItemTotal(currentItem)] }));
     setCurrentItem({ designation: '', quantity: 1, unit: 'Carton', unitPrice: 0, total: 0 });
   };
 
-  const removeItem = (i) => setForm(f => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }));
+  const removeItem = (i: number) =>
+    setForm(f => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }));
 
-  const subTotal    = form.items.reduce((s, i) => s + i.total, 0);
-  const totalHT     = subTotal - Number(form.discount || 0);
-  const totalTTC    = totalHT + (totalHT * Number(form.tva || 0) / 100);
+  const subTotal = form.items.reduce((s, i) => s + i.total, 0);
+  const totalHT  = subTotal - Number(form.discount || 0);
+  const totalTTC = totalHT + (totalHT * Number(form.tva || 0) / 100);
 
   const handleSubmit = async () => {
     if (!form.clientName || !form.items.length) {
@@ -86,7 +107,7 @@ export default function Invoices() {
       setModalOpen(false);
       setForm({ clientName: '', clientAddress: '', client: '', discount: 0, tva: 0, paymentConditions: '', items: [] });
       fetchAll();
-    } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
 
@@ -101,7 +122,7 @@ export default function Invoices() {
     finally { setSaving(false); }
   };
 
-  const handleDownload = async (invoice) => {
+  const handleDownload = async (invoice: any) => {
     setDownloading(invoice._id);
     try {
       const res = await downloadInvoicePDF(invoice._id);
@@ -117,16 +138,15 @@ export default function Invoices() {
   };
 
   const columns = [
-    { header: 'N° Facture', render: (i) => <span className="font-mono font-semibold text-blue-900">{i.invoiceNumber}</span> },
-    { header: 'Client', key: 'clientName' },
-    { header: 'Total HT', render: (i) => <span>{formatAmount(i.totalHT)} GNF</span> },
-    { header: 'Total TTC', render: (i) => <span className="font-semibold">{formatAmount(i.totalTTC)} GNF</span> },
-    { header: 'Statut', render: (i) => <Badge label={i.status} variant={statusVariant[i.status] || 'default'} /> },
-    { header: 'Date', render: (i) => <span className="text-sm text-gray-500">{formatDate(i.createdAt)}</span> },
-    { header: 'Actions', render: (i) => (
+    { header: 'N° Facture', render: (i: any) => <span className="font-mono font-semibold text-blue-900">{i.invoiceNumber}</span> },
+    { header: 'Client',     key: 'clientName' },
+    { header: 'Total HT',   render: (i: any) => <span>{formatAmount(i.totalHT)} GNF</span> },
+    { header: 'Total TTC',  render: (i: any) => <span className="font-semibold">{formatAmount(i.totalTTC)} GNF</span> },
+    { header: 'Statut',     render: (i: any) => <Badge label={i.status} variant={statusVariant[i.status] || 'default'} /> },
+    { header: 'Date',       render: (i: any) => <span className="text-sm text-gray-500">{formatDate(i.createdAt)}</span> },
+    { header: 'Actions',    render: (i: any) => (
       <div className="flex items-center gap-2">
-        <button onClick={() => handleDownload(i)}
-          disabled={downloading === i._id}
+        <button onClick={() => handleDownload(i)} disabled={downloading === i._id}
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors disabled:opacity-50">
           <FiDownload size={15} />
         </button>
@@ -200,13 +220,13 @@ export default function Invoices() {
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-gray-500">Quantité</label>
                 <input type="number" value={currentItem.quantity} min="1"
-                  onChange={(e) => setCurrentItem({ ...currentItem, quantity: e.target.value })}
+                  onChange={(e) => setCurrentItem({ ...currentItem, quantity: Number(e.target.value) })}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
               </div>
               <div className="col-span-2 flex flex-col gap-1">
                 <label className="text-xs text-gray-500">Prix unitaire (GNF)</label>
                 <input type="number" value={currentItem.unitPrice}
-                  onChange={(e) => setCurrentItem({ ...currentItem, unitPrice: e.target.value })}
+                  onChange={(e) => setCurrentItem({ ...currentItem, unitPrice: Number(e.target.value) })}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
               </div>
             </div>
@@ -221,12 +241,9 @@ export default function Invoices() {
               <table className="w-full text-sm">
                 <thead className="bg-blue-900 text-white">
                   <tr>
-                    <th className="px-4 py-2 text-left">Désignation</th>
-                    <th className="px-4 py-2 text-left">Qté</th>
-                    <th className="px-4 py-2 text-left">Unité</th>
-                    <th className="px-4 py-2 text-left">Prix unit.</th>
-                    <th className="px-4 py-2 text-left">Total</th>
-                    <th className="px-4 py-2"></th>
+                    {['Désignation', 'Qté', 'Unité', 'Prix unit.', 'Total', ''].map(h => (
+                      <th key={h} className="px-4 py-2 text-left">{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -235,7 +252,7 @@ export default function Invoices() {
                       <td className="px-4 py-2">{item.designation}</td>
                       <td className="px-4 py-2">{item.quantity}</td>
                       <td className="px-4 py-2">{item.unit}</td>
-                      <td className="px-4 py-2">{formatAmount(item.unitPrice)} GNF</td>
+                      <td className="px-4 py-2">{formatAmount(Number(item.unitPrice))} GNF</td>
                       <td className="px-4 py-2 font-semibold">{formatAmount(item.total)} GNF</td>
                       <td className="px-4 py-2">
                         <button onClick={() => removeItem(i)} className="text-red-500 hover:text-red-700">
@@ -259,7 +276,7 @@ export default function Invoices() {
               <div className="flex justify-between items-center">
                 <span>Remise (GNF)</span>
                 <input type="number" value={form.discount}
-                  onChange={(e) => setForm({ ...form, discount: e.target.value })}
+                  onChange={(e) => setForm({ ...form, discount: Number(e.target.value) })}
                   className="w-28 px-2 py-1 border rounded text-sm text-right focus:outline-none" />
               </div>
               <div className="flex justify-between">
@@ -269,7 +286,7 @@ export default function Invoices() {
               <div className="flex justify-between items-center">
                 <span>TVA (%)</span>
                 <input type="number" value={form.tva}
-                  onChange={(e) => setForm({ ...form, tva: e.target.value })}
+                  onChange={(e) => setForm({ ...form, tva: Number(e.target.value) })}
                   className="w-28 px-2 py-1 border rounded text-sm text-right focus:outline-none" />
               </div>
               <div className="flex justify-between font-bold text-blue-900 border-t border-blue-200 pt-2 text-base">

@@ -84,7 +84,7 @@ export default function Reports() {
           )}
           {activeTab === 'monthly' && (
             <>
-              <select value={month} onChange={(e) => setMonth(e.target.value)}
+              <select value={month} onChange={(e) => setMonth(Number(e.target.value))}
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
                 {[...Array(12)].map((_, i) => (
                   <option key={i+1} value={i+1}>
@@ -92,7 +92,7 @@ export default function Reports() {
                   </option>
                 ))}
               </select>
-              <input type="number" value={year} onChange={(e) => setYear(e.target.value)}
+              <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))}
                 className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
             </>
           )}

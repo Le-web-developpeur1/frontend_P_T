@@ -57,7 +57,7 @@ export default function Suppliers() {
   };
 
   const handlePayment = async () => {
-    if (!amount || amount <= 0) { toast.error('Montant invalide'); return; }
+    if (!amount || Number(amount) <= 0) { toast.error('Montant invalide'); return; }
     setSaving(true);
     try {
       await recordSupplierPayment(selected._id, { amount: Number(amount), note });
@@ -69,7 +69,7 @@ export default function Suppliers() {
   };
 
   const handlePurchase = async () => {
-    if (!amount || amount <= 0) { toast.error('Montant invalide'); return; }
+    if (!amount || Number(amount) <= 0 ) { toast.error('Montant invalide'); return; }
     setSaving(true);
     try {
       await recordPurchase(selected._id, { amount: Number(amount) });

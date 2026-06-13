@@ -56,7 +56,7 @@ export default function Clients() {
   };
 
   const handlePayment = async () => {
-    if (!payAmount || payAmount <= 0) { toast.error('Montant invalide'); return; }
+    if (!payAmount || Number(payAmount) <= 0) { toast.error('Montant invalide'); return; }
     setSaving(true);
     try {
       await recordClientPayment(selected._id, { amount: Number(payAmount) });
