@@ -10,23 +10,57 @@ import toast from 'react-hot-toast';
 import { FiEye, FiDollarSign, FiDownload, FiPrinter, FiUsers, FiAlertTriangle } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
+interface Client {
+  _id: string;
+  name: string;
+  phone?: string;
+  address?: string;
+  creditLimit: number;
+  currentDebt: number;
+  isBlocked: boolean;
+}
+
+interface SaleItem {
+  productName: string;
+  quantity: number;
+  unit: string;
+}
+
+interface Sale {
+  saleNumber: string;
+  createdAt: string;
+  items?: SaleItem[];
+  totalAmount: number;
+  amountPaid: number;
+  remainingAmount: number;
+  status: string;
+}
+
+interface CreditData {
+  client: Client;
+  totalCredit: number;
+  totalPaid: number;
+  totalRemaining: number;
+  sales: Sale[];
+}
+
 export default function Credits() {
-  const [clients, setClients]         = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [detailModal, setDetailModal] = useState(false);
-  const [payModal, setPayModal]       = useState(false);
-  const [selected, setSelected]       = useState(null);
-  const [creditData, setCreditData]   = useState(null);
-  const [payAmount, setPayAmount]     = useState('');
-  const [saving, setSaving]           = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [search, setSearch]           = useState('');
+  const [clients, setClients]         = useState<Client[]>([]);
+  const [loading, setLoading]         = useState<boolean>(true);
+  const [detailModal, setDetailModal] = useState<boolean>(false);
+  const [payModal, setPayModal]       = useState<boolean>(false);
+  const [selected, setSelected]       = useState<Client | null>(null);
+  const [creditData, setCreditData]   = useState<CreditData | null>(null);
+  const [payAmount, setPayAmount]     = useState<string>('');
+  const [saving, setSaving]           = useState<boolean>(false);
+  const [downloading, setDownloading] = useState<boolean>(false);
+  const [search, setSearch]           = useState<string>('');
 
   const fetchClients = async () => {
     try {
       const res = await getClients();
       // On filtre uniquement les clients qui ont une dette
-      setClients(res.data.filter(c => c.currentDebt > 0 || c.creditLimit > 0));
+      setClients(res.data.filter((c: Client) => c.currentDebt > 0 || c.creditLimit > 0));
     } catch { toast.error('Erreur chargement'); }
     finally { setLoading(false); }
   };
@@ -34,7 +68,7 @@ export default function Credits() {
   useEffect(() => { fetchClients(); }, []);
   useAutoRefresh(fetchClients, 15000);
 
-  const openDetail = async (client) => {
+  const openDetail = async (client: Client) => {
     setSelected(client);
     setCreditData(null);
     setDetailModal(true);
@@ -44,13 +78,14 @@ export default function Credits() {
     } catch { toast.error('Erreur chargement détails'); }
   };
 
-  const openPay = (client) => {
+  const openPay = (client: Client) => {
     setSelected(client);
     setPayAmount('');
     setPayModal(true);
   };
 
   const handlePayment = async () => {
+    if (!selected) return;
     if (!payAmount || Number(payAmount) <= 0) { toast.error('Montant invalide'); return; }
     if (Number(payAmount) > selected.currentDebt) {
       toast.error('Le montant dépasse la dette actuelle'); return;
@@ -66,11 +101,11 @@ export default function Credits() {
         const res = await getClientCredits(selected._id);
         setCreditData(res.data);
       }
-    } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
 
-  const handleDownloadPDF = async (client) => {
+  const handleDownloadPDF = async (client: Client) => {
     setDownloading(true);
     try {
       const res = await downloadCreditPDF(client._id);
@@ -85,33 +120,35 @@ export default function Credits() {
     finally { setDownloading(false); }
   };
 
-  const handlePrintPDF = async (client) => {
+  const handlePrintPDF = async (client: Client) => {
     setDownloading(true);
     try {
       const res = await downloadCreditPDF(client._id);
       const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const printWindow = window.open(url, '_blank');
-      printWindow.onload = () => {
-        printWindow.focus();
-        printWindow.print();
-      };
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.focus();
+          printWindow.print();
+        };
+      }
     } catch { toast.error('Erreur impression'); }
     finally { setDownloading(false); }
   };
 
   // Stats globales
-  const totalDebt    = clients.reduce((sum, c) => sum + c.currentDebt, 0);
-  const blockedCount = clients.filter(c => c.isBlocked).length;
+  const totalDebt    = clients.reduce((sum: number, c: Client) => sum + c.currentDebt, 0);
+  const blockedCount = clients.filter((c: Client) => c.isBlocked).length;
 
-  const filtered = clients.filter(c =>
+  const filtered = clients.filter((c: Client) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     (c.phone || '').includes(search)
   );
 
-  const statusVariant = { 'payé': 'success', 'partiel': 'warning', 'crédit': 'danger' };
+  const statusVariant: Record<string, 'success' | 'warning' | 'danger'> = { 'payé': 'success', 'partiel': 'warning', 'crédit': 'danger' };
 
   const columns = [
-    { header: 'Client', render: (c) => (
+    { header: 'Client', render: (c: Client) => (
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-[#1A2B5F] flex items-center justify-center text-[#D4A017] font-bold text-sm flex-shrink-0">
           {c.name?.charAt(0).toUpperCase()}
@@ -122,15 +159,15 @@ export default function Credits() {
         </div>
       </div>
     )},
-    { header: 'Plafond', render: (c) => (
+    { header: 'Plafond', render: (c: Client) => (
       <span className="text-sm">{formatAmount(c.creditLimit)} GNF</span>
     )},
-    { header: 'Dette actuelle', render: (c) => (
+    { header: 'Dette actuelle', render: (c: Client) => (
       <span className={`font-bold text-sm ${c.currentDebt > 0 ? 'text-red-600' : 'text-green-600'}`}>
         {formatAmount(c.currentDebt)} GNF
       </span>
     )},
-    { header: 'Utilisation', render: (c) => {
+    { header: 'Utilisation', render: (c: Client) => {
       const pct = c.creditLimit > 0 ? Math.round((c.currentDebt / c.creditLimit) * 100) : 0;
       return (
         <div className="w-32">
@@ -146,10 +183,10 @@ export default function Credits() {
         </div>
       );
     }},
-    { header: 'Statut', render: (c) => (
+    { header: 'Statut', render: (c: Client) => (
       <Badge label={c.isBlocked ? 'Bloqué' : 'Actif'} variant={c.isBlocked ? 'danger' : 'success'} />
     )},
-    { header: 'Actions', render: (c) => (
+    { header: 'Actions', render: (c: Client) => (
       <div className="flex items-center gap-2">
         <button onClick={() => openDetail(c)}
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
@@ -287,13 +324,13 @@ export default function Credits() {
                           Aucune vente à crédit
                         </td>
                       </tr>
-                    ) : creditData.sales.map((sale, i) => (
+                    ) : creditData.sales.map((sale: Sale, i: number) => (
                       <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-3 py-2.5 font-mono text-xs text-blue-900 font-semibold">{sale.saleNumber}</td>
                         <td className="px-3 py-2.5 text-xs text-gray-500">{formatDate(sale.createdAt)}</td>
                         <td className="px-3 py-2.5">
                           <div className="text-xs text-gray-600 space-y-0.5">
-                            {sale.items?.map((item, j) => (
+                            {sale.items?.map((item: SaleItem, j: number) => (
                               <p key={j}>{item.productName} × {item.quantity} {item.unit}</p>
                             ))}
                           </div>
@@ -318,14 +355,14 @@ export default function Credits() {
             {/* Actions */}
             <div className="flex gap-3 justify-end pt-2">
               {creditData.client.currentDebt > 0 && (
-                <Button variant="success" onClick={() => { setDetailModal(false); openPay(selected); }}>
+                <Button variant="success" onClick={() => { setDetailModal(false); selected && openPay(selected); }}>
                   <FiDollarSign size={16} /> Enregistrer un paiement
                 </Button>
               )}
-              <Button variant="ghost" onClick={() => handleDownloadPDF(selected)} loading={downloading}>
+              <Button variant="ghost" onClick={() => selected && handleDownloadPDF(selected)} loading={downloading}>
                 <FiDownload size={16} /> Télécharger PDF
               </Button>
-              <Button variant="ghost" onClick={() => handlePrintPDF(selected)} loading={downloading}>
+              <Button variant="ghost" onClick={() => selected && handlePrintPDF(selected)} loading={downloading}>
                 <FiPrinter size={16} /> Imprimer
               </Button>
             </div>

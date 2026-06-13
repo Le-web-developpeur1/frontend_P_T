@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getDailyReport, getMonthlyReport, getStockReport, getDebtReport, getSupplierReport, exportReport } from '../../api/reportAPI';
-import { formatAmount, formatDate } from '../../utils/formatAmount';
+import { formatAmount } from '../../utils/formatAmount';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
@@ -14,20 +14,22 @@ const tabs = [
   { id: 'suppliers', label: 'Fournisseurs' },
 ];
 
+type TabId = 'daily' | 'monthly' | 'stock' | 'debts' | 'suppliers';
+
 export default function Reports() {
-  const [activeTab, setActiveTab]   = useState('daily');
-  const [data, setData]             = useState(null);
-  const [loading, setLoading]       = useState(false);
-  const [exporting, setExporting]   = useState(false);
-  const [date, setDate]             = useState(new Date().toISOString().split('T')[0]);
-  const [month, setMonth]           = useState(new Date().getMonth() + 1);
-  const [year, setYear]             = useState(new Date().getFullYear());
+  const [activeTab, setActiveTab]   = useState<TabId>('daily');
+  const [data, setData]             = useState<any>(null);
+  const [loading, setLoading]       = useState<boolean>(false);
+  const [exporting, setExporting]   = useState<boolean>(false);
+  const [date, setDate]             = useState<string>(new Date().toISOString().split('T')[0]);
+  const [month, setMonth]           = useState<number>(new Date().getMonth() + 1);
+  const [year, setYear]             = useState<number>(new Date().getFullYear());
 
   const fetchReport = async () => {
     setLoading(true);
     setData(null);
     try {
-      let res;
+      let res: any;
       if (activeTab === 'daily')     res = await getDailyReport({ date });
       if (activeTab === 'monthly')   res = await getMonthlyReport({ month, year });
       if (activeTab === 'stock')     res = await getStockReport();
@@ -39,7 +41,7 @@ export default function Reports() {
   };
   
 
-  const handleExport = async (format) => {
+  const handleExport = async (format: string) => {
     setExporting(true);
     try {
       const params = activeTab === 'daily' ? { date } : activeTab === 'monthly' ? { month, year } : {};
@@ -67,7 +69,7 @@ export default function Reports() {
       <div className="bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100 flex gap-1">
         {tabs.map(tab => (
           <button key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setData(null); }}
+            onClick={() => { setActiveTab(tab.id as TabId); setData(null); }}
             className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all
               ${activeTab === tab.id ? 'bg-blue-900 text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
             {tab.label}
@@ -154,7 +156,7 @@ export default function Reports() {
                         </tr>
                       </thead>
                       <tbody>
-                        {data.sales.map((s, i) => (
+                        {data.sales.map((s: any, i: number) => (
                           <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                             <td className="px-4 py-2 font-mono text-blue-900">{s.saleNumber}</td>
                             <td className="px-4 py-2">{s.clientName}</td>
@@ -200,7 +202,7 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.products?.map((p, i) => (
+                  {data.products?.map((p: any, i: number) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-4 py-2 font-semibold">{p.name}</td>
                       <td className="px-4 py-2">{p.category}</td>
@@ -236,7 +238,7 @@ export default function Reports() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.clients?.map((c, i) => (
+                    {data.clients?.map((c: any, i: number) => (
                       <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-4 py-2 font-semibold">{c.name}</td>
                         <td className="px-4 py-2">{c.phone || '—'}</td>
@@ -270,7 +272,7 @@ export default function Reports() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.suppliers?.map((s, i) => (
+                    {data.suppliers?.map((s: any, i: number) => (
                       <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="px-4 py-2 font-semibold">{s.name}</td>
                         <td className="px-4 py-2">{s.phone || '—'}</td>

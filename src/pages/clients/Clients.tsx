@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect } from 'react';
 import { getClients, createClient, updateClient, deleteClient, recordClientPayment } from '../../api/clientAPI';
 import { formatAmount } from '../../utils/formatAmount';

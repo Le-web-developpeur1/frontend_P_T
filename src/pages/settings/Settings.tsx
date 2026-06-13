@@ -25,7 +25,7 @@ export default function Settings() {
   });
 
   const [logoFile, setLogoFile]   = useState(null);
-  const [logoPreview, setLogoPreview] = useState(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [savingSys, setSavingSys] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);

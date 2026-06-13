@@ -9,21 +9,34 @@ import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2, FiDollarSign, FiShoppingBag } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
-const emptyForm = { name: '', phone: '', address: '' };
+interface SupplierForm {
+  name: string;
+  phone: string;
+  address: string;
+}
+
+interface Supplier extends SupplierForm {
+  _id: string;
+  totalPurchases: number;
+  totalPaid: number;
+  balance: number;
+}
+
+const emptyForm: SupplierForm = { name: '', phone: '', address: '' };
 
 export default function Suppliers() {
-  const [suppliers, setSuppliers]     = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [modalOpen, setModalOpen]     = useState(false);
-  const [payModal, setPayModal]       = useState(false);
-  const [purchaseModal, setPurchaseModal] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [selected, setSelected]       = useState(null);
-  const [form, setForm]               = useState(emptyForm);
-  const [amount, setAmount]           = useState('');
-  const [note, setNote]               = useState('');
-  const [saving, setSaving]           = useState(false);
-  const [search, setSearch]           = useState('');
+  const [suppliers, setSuppliers]     = useState<Supplier[]>([]);
+  const [loading, setLoading]         = useState<boolean>(true);
+  const [modalOpen, setModalOpen]     = useState<boolean>(false);
+  const [payModal, setPayModal]       = useState<boolean>(false);
+  const [purchaseModal, setPurchaseModal] = useState<boolean>(false);
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [selected, setSelected]       = useState<Supplier | null>(null);
+  const [form, setForm]               = useState<SupplierForm>(emptyForm);
+  const [amount, setAmount]           = useState<string>('');
+  const [note, setNote]               = useState<string>('');
+  const [saving, setSaving]           = useState<boolean>(false);
+  const [search, setSearch]           = useState<string>('');
 
   const fetchSuppliers = async () => {
     try {
@@ -36,27 +49,30 @@ export default function Suppliers() {
   useEffect(() => { fetchSuppliers(); }, []);
   useAutoRefresh(fetchSuppliers, 30000);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => 
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const openCreate   = ()  => { setSelected(null); setForm(emptyForm); setModalOpen(true); };
-  const openEdit     = (s) => { setSelected(s); setForm({ ...s }); setModalOpen(true); };
-  const openPay      = (s) => { setSelected(s); setAmount(''); setNote(''); setPayModal(true); };
-  const openPurchase = (s) => { setSelected(s); setAmount(''); setPurchaseModal(true); };
-  const openDelete   = (s) => { setSelected(s); setDeleteModal(true); };
+  const openEdit     = (s: Supplier) => { setSelected(s); setForm({ ...s }); setModalOpen(true); };
+  const openPay      = (s: Supplier) => { setSelected(s); setAmount(''); setNote(''); setPayModal(true); };
+  const openPurchase = (s: Supplier) => { setSelected(s); setAmount(''); setPurchaseModal(true); };
+  const openDelete   = (s: Supplier) => { setSelected(s); setDeleteModal(true); };
 
   const handleSubmit = async () => {
     if (!form.name) { toast.error('Le nom est obligatoire'); return; }
+    if (!selected) return;
     setSaving(true);
     try {
       selected ? await updateSupplier(selected._id, form) : await createSupplier(form);
       toast.success(selected ? 'Fournisseur mis à jour !' : 'Fournisseur créé !');
       setModalOpen(false);
       fetchSuppliers();
-    } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
 
   const handlePayment = async () => {
+    if (!selected) return;
     if (!amount || Number(amount) <= 0) { toast.error('Montant invalide'); return; }
     setSaving(true);
     try {
@@ -64,11 +80,12 @@ export default function Suppliers() {
       toast.success('Versement enregistré !');
       setPayModal(false);
       fetchSuppliers();
-    } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
 
   const handlePurchase = async () => {
+    if (!selected) return;
     if (!amount || Number(amount) <= 0 ) { toast.error('Montant invalide'); return; }
     setSaving(true);
     try {
@@ -76,11 +93,12 @@ export default function Suppliers() {
       toast.success('Achat enregistré !');
       setPurchaseModal(false);
       fetchSuppliers();
-    } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
+    if (!selected) return;
     setSaving(true);
     try {
       await deleteSupplier(selected._id);
@@ -91,27 +109,27 @@ export default function Suppliers() {
     finally { setSaving(false); }
   };
 
-  const filtered = suppliers.filter(s =>
+  const filtered = suppliers.filter((s: Supplier) =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
     (s.phone || '').includes(search)
   );
 
   const columns = [
-    { header: 'Fournisseur', render: (s) => (
+    { header: 'Fournisseur', render: (s: Supplier) => (
       <div>
         <p className="font-semibold text-gray-800">{s.name}</p>
         <p className="text-xs text-gray-400">{s.phone}</p>
       </div>
     )},
     { header: 'Adresse', key: 'address' },
-    { header: 'Total achats', render: (s) => <span>{formatAmount(s.totalPurchases)} GNF</span> },
-    { header: 'Total payé',   render: (s) => <span className="text-green-600">{formatAmount(s.totalPaid)} GNF</span> },
-    { header: 'Solde restant', render: (s) => (
+    { header: 'Total achats', render: (s: Supplier) => <span>{formatAmount(s.totalPurchases)} GNF</span> },
+    { header: 'Total payé',   render: (s: Supplier) => <span className="text-green-600">{formatAmount(s.totalPaid)} GNF</span> },
+    { header: 'Solde restant', render: (s: Supplier) => (
       <span className={`font-semibold ${s.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
         {formatAmount(s.balance)} GNF
       </span>
     )},
-    { header: 'Actions', render: (s) => (
+    { header: 'Actions', render: (s: Supplier) => (
       <div className="flex items-center gap-2">
         <button onClick={() => openPurchase(s)}
           className="p-1.5 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors"

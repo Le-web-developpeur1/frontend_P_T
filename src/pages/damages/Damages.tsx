@@ -10,9 +10,54 @@ import toast from 'react-hot-toast';
 import { FiPlus, FiTrash2, FiAlertTriangle, FiPackage, FiDollarSign } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
-const emptyForm = { product: '', reason: 'périmé', quantityCartons: 0, quantityKg: 0, note: '' };
+interface Product {
+  _id: string;
+  name: string;
+  category?: string;
+  stockCartons: number;
+  stockKg: number;
+  pricePerCarton: number;
+  pricePerKg: number;
+}
 
-const reasonVariant = {
+interface DamageForm {
+  product: string;
+  reason: string;
+  quantityCartons: number | string;
+  quantityKg: number | string;
+  note: string;
+}
+
+interface DamageProduct {
+  _id: string;
+  name: string;
+  category?: string;
+}
+
+interface Damage {
+  _id: string;
+  productName: string;
+  product: string | DamageProduct;
+  reason: string;
+  quantityCartons: number;
+  quantityKg: number;
+  estimatedLoss: number;
+  note: string;
+  createdAt: string;
+}
+
+interface DamageStats {
+  totalDamages: number;
+  totalCartons: number;
+  totalKg: number;
+  totalLoss: number;
+}
+
+const emptyForm: DamageForm = {
+  product: '', reason: 'périmé', quantityCartons: 0, quantityKg: 0, note: ''
+};
+
+const reasonVariant: Record<string, 'warning' | 'danger' | 'info' | 'default'> = {
   'périmé':        'warning',
   'pourri':        'danger',
   'endommagé':     'info',
@@ -21,16 +66,16 @@ const reasonVariant = {
 };
 
 export default function Damages() {
-  const [damages, setDamages]       = useState([]);
-  const [stats, setStats]           = useState(null);
-  const [products, setProducts]     = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [modalOpen, setModalOpen]   = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [selected, setSelected]     = useState(null);
-  const [form, setForm]             = useState(emptyForm);
-  const [saving, setSaving]         = useState(false);
-  const [search, setSearch]         = useState('');
+  const [damages, setDamages]         = useState<Damage[]>([]);
+  const [stats, setStats]             = useState<DamageStats | null>(null);
+  const [products, setProducts]       = useState<Product[]>([]);
+  const [loading, setLoading]         = useState<boolean>(true);
+  const [modalOpen, setModalOpen]     = useState<boolean>(false);
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [selected, setSelected]       = useState<Damage | null>(null);
+  const [form, setForm]               = useState<DamageForm>(emptyForm);
+  const [saving, setSaving]           = useState<boolean>(false);
+  const [search, setSearch]           = useState<string>('');
 
   const fetchAll = async () => {
     try {
@@ -45,11 +90,12 @@ export default function Damages() {
   useEffect(() => { fetchAll(); }, []);
   useAutoRefresh(fetchAll, 30000);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async () => {
     if (!form.product) { toast.error('Sélectionnez un produit'); return; }
-    if (!form.quantityCartons && !form.quantityKg) {
+    if (!Number(form.quantityCartons) && !Number(form.quantityKg)) {
       toast.error('Indiquez au moins une quantité'); return;
     }
     setSaving(true);
@@ -57,17 +103,18 @@ export default function Damages() {
       await createDamage({
         ...form,
         quantityCartons: Number(form.quantityCartons),
-        quantityKg: Number(form.quantityKg),
+        quantityKg:      Number(form.quantityKg),
       });
       toast.success('Avarie déclarée !');
       setModalOpen(false);
       setForm(emptyForm);
       fetchAll();
-    } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async () => {
+    if (!selected) return;
     setSaving(true);
     try {
       await deleteDamage(selected._id);
@@ -78,39 +125,44 @@ export default function Damages() {
     finally { setSaving(false); }
   };
 
-  const filtered = damages.filter(d =>
+  const getCategory = (product: string | DamageProduct): string => {
+    if (typeof product === 'object' && product !== null) return product.category || '—';
+    return '—';
+  };
+
+  const filtered = damages.filter((d: Damage) =>
     d.productName?.toLowerCase().includes(search.toLowerCase()) ||
     d.reason?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const selectedProduct = products.find(p => p._id === form.product);
+  const selectedProduct = products.find((p: Product) => p._id === form.product);
 
   const columns = [
-    { header: 'Produit', render: (d) => (
+    { header: 'Produit', render: (d: Damage) => (
       <div>
         <p className="font-semibold text-gray-800 text-sm">{d.productName}</p>
-        <p className="text-xs text-gray-400">{d.product?.category}</p>
+        <p className="text-xs text-gray-400">{getCategory(d.product)}</p>
       </div>
     )},
-    { header: 'Raison', render: (d) => (
+    { header: 'Raison', render: (d: Damage) => (
       <Badge label={d.reason} variant={reasonVariant[d.reason] || 'default'} />
     )},
-    { header: 'Qté Cartons', render: (d) => (
+    { header: 'Qté Cartons', render: (d: Damage) => (
       <span className="text-sm">{d.quantityCartons > 0 ? `${d.quantityCartons} cartons` : '—'}</span>
     )},
-    { header: 'Qté Kg', render: (d) => (
+    { header: 'Qté Kg', render: (d: Damage) => (
       <span className="text-sm">{d.quantityKg > 0 ? `${d.quantityKg} kg` : '—'}</span>
     )},
-    { header: 'Perte estimée', render: (d) => (
+    { header: 'Perte estimée', render: (d: Damage) => (
       <span className="font-semibold text-red-600">{formatAmount(d.estimatedLoss)} GNF</span>
     )},
-    { header: 'Note', render: (d) => (
+    { header: 'Note', render: (d: Damage) => (
       <span className="text-xs text-gray-500 truncate max-w-[120px] block">{d.note || '—'}</span>
     )},
-    { header: 'Date', render: (d) => (
+    { header: 'Date', render: (d: Damage) => (
       <span className="text-xs text-gray-500">{formatDate(d.createdAt)}</span>
     )},
-    { header: 'Actions', render: (d) => (
+    { header: 'Actions', render: (d: Damage) => (
       <button onClick={() => { setSelected(d); setDeleteModal(true); }}
         className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
         <FiTrash2 size={15} />
@@ -136,10 +188,10 @@ export default function Damages() {
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { icon: FiAlertTriangle, label: 'Total déclarations', value: stats.totalDamages, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-            { icon: FiPackage,       label: 'Cartons perdus',     value: `${stats.totalCartons}`,  color: 'text-orange-600', bg: 'bg-orange-50' },
-            { icon: FiPackage,       label: 'Kg perdus',          value: `${stats.totalKg} kg`,    color: 'text-orange-600', bg: 'bg-orange-50' },
-            { icon: FiDollarSign,    label: 'Pertes totales',     value: `${formatAmount(stats.totalLoss)} GNF`, color: 'text-red-600', bg: 'bg-red-50' },
+            { icon: FiAlertTriangle, label: 'Total déclarations', value: String(stats.totalDamages),                    color: 'text-yellow-600', bg: 'bg-yellow-50' },
+            { icon: FiPackage,       label: 'Cartons perdus',     value: String(stats.totalCartons),                    color: 'text-orange-600', bg: 'bg-orange-50' },
+            { icon: FiPackage,       label: 'Kg perdus',          value: `${stats.totalKg} kg`,                         color: 'text-orange-600', bg: 'bg-orange-50' },
+            { icon: FiDollarSign,    label: 'Pertes totales',     value: `${formatAmount(stats.totalLoss)} GNF`,        color: 'text-red-600',    bg: 'bg-red-50'    },
           ].map(({ icon: Icon, label, value, color, bg }) => (
             <div key={label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
               <div className="flex items-center gap-3">
@@ -174,11 +226,13 @@ export default function Damages() {
 
           {/* Produit */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">Produit <span className="text-red-500">*</span></label>
+            <label className="text-sm font-medium text-gray-700">
+              Produit <span className="text-red-500">*</span>
+            </label>
             <select name="product" value={form.product} onChange={handleChange}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
               <option value="">Sélectionner un produit...</option>
-              {products.map(p => (
+              {products.map((p: Product) => (
                 <option key={p._id} value={p._id}>
                   {p.name} — Stock : {p.stockCartons} cartons / {p.stockKg} kg
                 </option>
@@ -199,7 +253,9 @@ export default function Damages() {
 
           {/* Raison */}
           <div className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-gray-700">Raison <span className="text-red-500">*</span></label>
+            <label className="text-sm font-medium text-gray-700">
+              Raison <span className="text-red-500">*</span>
+            </label>
             <select name="reason" value={form.reason} onChange={handleChange}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
               <option value="périmé">Périmé</option>
@@ -214,19 +270,19 @@ export default function Damages() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-gray-700">Quantité (cartons)</label>
-              <input type="number" name="quantityCartons" value={form.quantityCartons}
-                onChange={handleChange} min="0"
+              <input type="number" name="quantityCartons"
+                value={form.quantityCartons} onChange={handleChange} min="0"
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-gray-700">Quantité (kg)</label>
-              <input type="number" name="quantityKg" value={form.quantityKg}
-                onChange={handleChange} min="0"
+              <input type="number" name="quantityKg"
+                value={form.quantityKg} onChange={handleChange} min="0"
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
             </div>
           </div>
 
-          {/* Perte estimée preview */}
+          {/* Perte estimée */}
           {selectedProduct && (Number(form.quantityCartons) > 0 || Number(form.quantityKg) > 0) && (
             <div className="bg-red-50 rounded-lg p-3 border border-red-200 text-sm">
               <p className="text-red-700 font-semibold">

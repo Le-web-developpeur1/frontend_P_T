@@ -3,11 +3,62 @@ import { getDailyReport, getMonthlyReport } from '../../api/reportAPI';
 import { getLowStockProducts } from '../../api/productAPI';
 import { getDebtReport } from '../../api/reportAPI';
 import { formatAmount } from '../../utils/formatAmount';
-import { FiShoppingCart, FiDollarSign, FiTrendingUp, FiAlertTriangle, FiUsers, FiPackage } from 'react-icons/fi';
+import { FiShoppingCart, FiDollarSign, FiTrendingUp, FiAlertTriangle, FiUsers } from 'react-icons/fi';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
+import { IconType } from 'react-icons';
 
-const StatCard = ({ icon: Icon, label, value, sub, iconColor = 'text-blue-600' }) => {
+interface StatCardProps {
+  icon: IconType;
+  label: string;
+  value: string | number;
+  sub?: string;
+  iconColor?: string;
+}
+
+interface DailyReport {
+  totalSales: number;
+  totalCash: number;
+  totalCredit: number;
+  totalExpenses: number;
+  netProfit: number;
+  salesCount: number;
+}
+
+interface MonthlyReport {
+  totalSales: number;
+  totalExpenses: number;
+  netProfit: number;
+  salesCount: number;
+}
+
+interface LowStockProduct {
+  _id: string;
+  name: string;
+  category: string;
+  stockCartons: number;
+  alertThreshold: number;
+}
+
+interface DebtClient {
+  _id: string;
+  name: string;
+  phone: string;
+  currentDebt: number;
+  isBlocked?: boolean;
+}
+
+interface DebtReport {
+  totalDebt: number;
+  clients: DebtClient[];
+}
+
+interface ChartData {
+  name: string;
+  montant: number;
+}
+
+const StatCard = ({ icon: Icon, label, value, sub, iconColor = 'text-blue-600' }: StatCardProps) => {
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
       <div className="flex items-center gap-3">
@@ -25,11 +76,11 @@ const StatCard = ({ icon: Icon, label, value, sub, iconColor = 'text-blue-600' }
 };
 
 export default function Dashboard() {
-  const [daily, setDaily] = useState(null);
-  const [monthly, setMonthly] = useState(null);
-  const [lowStock, setLowStock] = useState([]);
-  const [debts, setDebts] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [daily, setDaily] = useState<DailyReport | null>(null);
+  const [monthly, setMonthly] = useState<MonthlyReport | null>(null);
+  const [lowStock, setLowStock] = useState<LowStockProduct[]>([]);
+  const [debts, setDebts] = useState<DebtReport | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
     const fetchAll = async () => {
       try {
@@ -52,7 +103,7 @@ export default function Dashboard() {
   useEffect(() => { fetchAll(); }, []);
   useAutoRefresh(fetchAll, 15000);
 
-  const chartData = monthly ? [
+  const chartData: ChartData[] = monthly ? [
     { name: 'Ventes', montant: monthly.totalSales },
     { name: 'Dépenses', montant: monthly.totalExpenses },
     { name: 'Bénéfice', montant: monthly.netProfit },
@@ -124,8 +175,8 @@ export default function Dashboard() {
             <BarChart data={chartData} barSize={50}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => formatAmount(v)} />
-              <Tooltip formatter={(value) => [`${formatAmount(value)} GNF`]} />
+              <YAxis tick={{ fontSize: 11 }} tickFormatter={(v: number) => formatAmount(v)} />
+              <Tooltip formatter={(value: any) => [`${formatAmount(Number(value))} GNF`]} />
               <Bar dataKey="montant" fill="#1e3a8a" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -165,7 +216,7 @@ export default function Dashboard() {
             <p className="text-gray-400 text-sm text-center py-6">✅ Tous les stocks sont OK</p>
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {lowStock.map((p) => (
+              {lowStock.map((p: LowStockProduct) => (
                 <div key={p._id} className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                   <div>
                     <p className="text-sm font-semibold text-gray-800">{p.name}</p>
@@ -196,7 +247,7 @@ export default function Dashboard() {
             <p className="text-gray-400 text-sm text-center py-6">✅ Aucune dette en cours</p>
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {debts.clients.slice(0, 5).map((c) => (
+              {debts.clients.slice(0, 5).map((c: DebtClient) => (
                 <div key={c._id} className="flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200">
                   <div>
                     <p className="text-sm font-semibold text-gray-800">{c.name}</p>

@@ -9,15 +9,31 @@ import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiPower } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
-const emptyForm = { name: '', email: '', password: '', role: 'caissier' };
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'gestionnaire' | 'caissier';
+  isActive: boolean;
+  createdAt: string;
+}
+
+interface UserForm {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+}
+
+const emptyForm: UserForm = { name: '', email: '', password: '', role: 'caissier' };
 
 export default function Users() {
-  const [users, setUsers]         = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selected, setSelected]   = useState(null);
-  const [form, setForm]           = useState(emptyForm);
-  const [saving, setSaving]       = useState(false);
+  const [selected, setSelected] = useState<User | null>(null);
+  const [form, setForm] = useState<UserForm>(emptyForm);
+  const [saving, setSaving] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -30,10 +46,15 @@ export default function Users() {
   useEffect(() => { fetchUsers(); }, []);
   useAutoRefresh(fetchUsers, 30000);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => 
+    setForm({ ...form, [e.target.name]: e.target.value });
 
   const openCreate = () => { setSelected(null); setForm(emptyForm); setModalOpen(true); };
-  const openEdit   = (u) => { setSelected(u); setForm({ name: u.name, email: u.email, role: u.role, password: '' }); setModalOpen(true); };
+  const openEdit = (u: User) => { 
+    setSelected(u); 
+    setForm({ name: u.name, email: u.email, role: u.role, password: '' }); 
+    setModalOpen(true); 
+  };
 
   const handleSubmit = async () => {
     if (!form.name || !form.email) { toast.error('Nom et email obligatoires'); return; }
@@ -46,11 +67,13 @@ export default function Users() {
       toast.success(selected ? 'Utilisateur mis à jour !' : 'Utilisateur créé !');
       setModalOpen(false);
       fetchUsers();
-    } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
+    } catch (err: any) { 
+      toast.error(err.response?.data?.message || 'Erreur'); 
+    }
     finally { setSaving(false); }
   };
 
-  const handleToggle = async (user) => {
+  const handleToggle = async (user: User) => {
     try {
       await toggleUserStatus(user._id);
       toast.success(`Utilisateur ${user.isActive ? 'désactivé' : 'activé'} !`);
@@ -58,11 +81,20 @@ export default function Users() {
     } catch { toast.error('Erreur'); }
   };
 
-  const roleLabel = { admin: 'Administrateur', gestionnaire: 'Gestionnaire', caissier: 'Caissier' };
-  const roleVariant = { admin: 'danger', gestionnaire: 'warning', caissier: 'info' };
+  const roleLabel: Record<User['role'], string> = { 
+    admin: 'Administrateur', 
+    gestionnaire: 'Gestionnaire', 
+    caissier: 'Caissier' 
+  };
+  
+  const roleVariant: Record<User['role'], string> = { 
+    admin: 'danger', 
+    gestionnaire: 'warning', 
+    caissier: 'info' 
+  };
 
   const columns = [
-    { header: 'Utilisateur', render: (u) => (
+    { header: 'Utilisateur', render: (u: User) => (
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-xl bg-[#1A2B5F] flex items-center justify-center text-[#D4A017] font-bold text-sm flex-shrink-0">
           {u.name?.charAt(0).toUpperCase()}
@@ -73,18 +105,18 @@ export default function Users() {
         </div>
       </div>
     )},
-    { header: 'Rôle', render: (u) => (
+    { header: 'Rôle', render: (u: User) => (
       <Badge label={roleLabel[u.role] || u.role} variant={roleVariant[u.role] || 'default'} />
     )},
-    { header: 'Statut', render: (u) => (
+    { header: 'Statut', render: (u: User) => (
       <Badge label={u.isActive ? 'Actif' : 'Inactif'} variant={u.isActive ? 'success' : 'danger'} />
     )},
-    { header: 'Créé le', render: (u) => (
+    { header: 'Créé le', render: (u: User) => (
       <span className="text-xs text-gray-500">
         {new Date(u.createdAt).toLocaleDateString('fr-FR')}
       </span>
     )},
-    { header: 'Actions', render: (u) => (
+    { header: 'Actions', render: (u: User) => (
       <div className="flex items-center gap-2">
         <button onClick={() => openEdit(u)}
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">

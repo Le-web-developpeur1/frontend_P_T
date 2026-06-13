@@ -5,17 +5,22 @@ import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import { FiLogIn } from 'react-icons/fi';
 
+interface LoginForm {
+  email: string;
+  password: string;
+}
+
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState<LoginForm>({ email: '', password: '' });
+  const [loading, setLoading] = useState<boolean>(false);
   const { loginUser } = useAuth();
   const navigate = useNavigate();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.email || !form.password) {
       toast.error('Veuillez remplir tous les champs');
@@ -27,7 +32,7 @@ export default function Login() {
       loginUser(res.data, res.data.token);
       toast.success(`Bienvenue ${res.data.name} !`);
       navigate('/');
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.response?.data?.message || 'Erreur de connexion');
     } finally {
       setLoading(false);

@@ -10,24 +10,46 @@ import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2, FiPackage, FiAlertTriangle } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
-const emptyForm = {
+interface ProductForm {
+  name: string;
+  category: string;
+  stockCartons: number;
+  stockKg: number;
+  kgPerCarton: number;
+  pricePerCarton: number;
+  pricePerKg: number;
+  alertThreshold: number;
+}
+
+interface Product extends ProductForm {
+  _id: string;
+}
+
+interface StockForm {
+  type: string;
+  quantityCartons: number;
+  quantityKg: number;
+  reason: string;
+}
+
+const emptyForm: ProductForm = {
   name: '', category: '', stockCartons: 0, stockKg: 0,
   kgPerCarton: 0, pricePerCarton: 0, pricePerKg: 0, alertThreshold: 5
 };
 
-const emptyStockForm = { type: 'entrée', quantityCartons: 0, quantityKg: 0, reason: 'achat' };
+const emptyStockForm: StockForm = { type: 'entrée', quantityCartons: 0, quantityKg: 0, reason: 'achat' };
 
 export default function Products() {
-  const [products, setProducts]         = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [modalOpen, setModalOpen]       = useState(false);
-  const [stockModal, setStockModal]     = useState(false);
-  const [deleteModal, setDeleteModal]   = useState(false);
-  const [selected, setSelected]         = useState(null);
-  const [form, setForm]                 = useState(emptyForm);
-  const [stockForm, setStockForm]       = useState(emptyStockForm);
-  const [saving, setSaving]             = useState(false);
-  const [search, setSearch]             = useState('');
+  const [products, setProducts]         = useState<Product[]>([]);
+  const [loading, setLoading]           = useState<boolean>(true);
+  const [modalOpen, setModalOpen]       = useState<boolean>(false);
+  const [stockModal, setStockModal]     = useState<boolean>(false);
+  const [deleteModal, setDeleteModal]   = useState<boolean>(false);
+  const [selected, setSelected]         = useState<Product | null>(null);
+  const [form, setForm]                 = useState<ProductForm>(emptyForm);
+  const [stockForm, setStockForm]       = useState<StockForm>(emptyStockForm);
+  const [saving, setSaving]             = useState<boolean>(false);
+  const [search, setSearch]             = useState<string>('');
 
   const fetchProducts = async () => {
     try {
@@ -43,8 +65,11 @@ export default function Products() {
   useEffect(() => { fetchProducts(); }, []);
   useAutoRefresh(fetchProducts, 30000);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const handleStockChange = (e) => setStockForm({ ...stockForm, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => 
+    setForm({ ...form, [e.target.name]: e.target.value });
+    
+  const handleStockChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => 
+    setStockForm({ ...stockForm, [e.target.name]: e.target.value });
 
   const openCreate = () => {
     setSelected(null);
@@ -52,19 +77,19 @@ export default function Products() {
     setModalOpen(true);
   };
 
-  const openEdit = (product) => {
+  const openEdit = (product: Product) => {
     setSelected(product);
     setForm({ ...product });
     setModalOpen(true);
   };
 
-  const openStock = (product) => {
+  const openStock = (product: Product) => {
     setSelected(product);
     setStockForm(emptyStockForm);
     setStockModal(true);
   };
 
-  const openDelete = (product) => {
+  const openDelete = (product: Product) => {
     setSelected(product);
     setDeleteModal(true);
   };
@@ -85,7 +110,7 @@ export default function Products() {
       }
       setModalOpen(false);
       fetchProducts();
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.response?.data?.message || 'Erreur');
     } finally {
       setSaving(false);
@@ -93,13 +118,14 @@ export default function Products() {
   };
 
   const handleStockSubmit = async () => {
+    if (!selected) return;
     setSaving(true);
     try {
       await adjustStock(selected._id, stockForm);
       toast.success('Stock ajusté !');
       setStockModal(false);
       fetchProducts();
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.response?.data?.message || 'Erreur');
     } finally {
       setSaving(false);
@@ -107,6 +133,7 @@ export default function Products() {
   };
 
   const handleDelete = async () => {
+    if (!selected) return;
     setSaving(true);
     try {
       await deleteProduct(selected._id);
@@ -120,19 +147,19 @@ export default function Products() {
     }
   };
 
-  const filtered = products.filter(p =>
+  const filtered = products.filter((p: Product) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     (p.category || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const columns = [
-    { header: 'Produit', render: (p) => (
+    { header: 'Produit', render: (p: Product) => (
       <div>
         <p className="font-semibold text-gray-800">{p.name}</p>
         <p className="text-xs text-gray-400">{p.category}</p>
       </div>
     )},
-    { header: 'Stock Cartons', render: (p) => (
+    { header: 'Stock Cartons', render: (p: Product) => (
       <div className="flex items-center gap-2">
         <span className="font-semibold">{p.stockCartons}</span>
         {p.stockCartons <= p.alertThreshold && (
@@ -140,16 +167,16 @@ export default function Products() {
         )}
       </div>
     )},
-    { header: 'Stock Kg', render: (p) => <span>{p.stockKg} kg</span> },
-    { header: 'Prix/Carton', render: (p) => <span>{formatAmount(p.pricePerCarton)} GNF</span> },
-    { header: 'Prix/Kg', render: (p) => <span>{formatAmount(p.pricePerKg)} GNF</span> },
-    { header: 'Statut', render: (p) => (
+    { header: 'Stock Kg', render: (p: Product) => <span>{p.stockKg} kg</span> },
+    { header: 'Prix/Carton', render: (p: Product) => <span>{formatAmount(p.pricePerCarton)} GNF</span> },
+    { header: 'Prix/Kg', render: (p: Product) => <span>{formatAmount(p.pricePerKg)} GNF</span> },
+    { header: 'Statut', render: (p: Product) => (
       <Badge
         label={p.stockCartons <= p.alertThreshold ? 'Stock bas' : 'OK'}
         variant={p.stockCartons <= p.alertThreshold ? 'warning' : 'success'}
       />
     )},
-    { header: 'Actions', render: (p) => (
+    { header: 'Actions', render: (p: Product) => (
       <div className="flex items-center gap-2">
         <button onClick={() => openStock(p)}
           className="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
