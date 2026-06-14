@@ -42,6 +42,9 @@ export default function App() {
         <Route path="users" element={<Users />} />
         <Route path="damages" element={<Damages />} />
         <Route path="settings" element={<Settings />} />
+
+        {/* Toute route inconnue → login */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Route>
     </Routes>
   );
