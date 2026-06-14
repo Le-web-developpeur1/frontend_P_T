@@ -41,7 +41,7 @@ export default function Sidebar({ isOpen }) {
         minHeight: '68px'
       }}>
         {config?.logo ? (
-          <img src={`http://localhost:4000/${config.logo}`} alt="logo"
+          <img src={`${import.meta.env.VITE_API_URL}/${config.logo}`} alt="logo"
             style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} />
         ) : (
           <div style={{
