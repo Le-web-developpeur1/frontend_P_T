@@ -3,6 +3,7 @@ import { useAuth } from './context/AuthContext';
 import Layout from './components/layout/Layout';
 import Login from './pages/auth/Login';
 import Dashboard from './pages/dashboard/Dashboard';
+import Caisse from './pages/caisse/Caisse';
 import Products from './pages/products/Products';
 import Clients from './pages/clients/Clients';
 import Suppliers from './pages/suppliers/Suppliers';
@@ -31,6 +32,7 @@ export default function App() {
       <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Dashboard />} />
+        <Route path="caisse" element={<Caisse />} />
         <Route path="products" element={<Products />} />
         <Route path="clients" element={<Clients />} />
         <Route path='credits' element={<Credits />} />

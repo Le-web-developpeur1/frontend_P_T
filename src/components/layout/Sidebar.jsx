@@ -1,12 +1,13 @@
 import { NavLink } from 'react-router-dom';
 import { FiGrid, FiPackage, FiUsers, FiTruck,
   FiShoppingCart, FiFileText, FiDollarSign,
-  FiBarChart2, FiSettings, FiUserPlus, FiAlertOctagon, FiCreditCard } from 'react-icons/fi';
+  FiBarChart2, FiSettings, FiUserPlus, FiAlertOctagon, FiCreditCard, FiMonitor } from 'react-icons/fi';
 import { useSystem } from '../../context/SystemContext';
 
 const links = [
   { to: '/',          icon: FiGrid,         label: 'Dashboard'     },
-  { to: '/sales',     icon: FiShoppingCart, label: 'Caisse'        },
+  { to: '/caisse', icon: FiMonitor, label: 'Caisse' },
+  { to: '/sales',     icon: FiShoppingCart, label: 'Ventes'        },
   { to: '/products',  icon: FiPackage,      label: 'Produits'      },
   { to: '/clients',   icon: FiUsers,        label: 'Clients'       },
   { to: '/credits', icon: FiCreditCard, label: 'Crédits' },
