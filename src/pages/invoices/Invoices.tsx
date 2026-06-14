@@ -1,62 +1,36 @@
-import { useState, useEffect } from 'react';
-import { getInvoices, createInvoice, deleteInvoice, downloadInvoicePDF } from '../../api/invoiceAPI';
-import { getClients } from '../../api/clientAPI';
+import { useState, useEffect, useMemo } from 'react';
+import { getInvoices, deleteInvoice, downloadInvoicePDF } from '../../api/invoiceAPI';
 import { formatAmount, formatDate } from '../../utils/formatAmount';
 import Table from '../../components/common/Table';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
-import Input from '../../components/common/Input';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
-import { FiPlus, FiTrash2, FiDownload } from 'react-icons/fi';
+import { FiTrash2, FiDownload, FiPrinter, FiSearch, FiX } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 const statusVariant: Record<string, 'default' | 'info' | 'success' | 'warning' | 'danger'> = {
   brouillon: 'default', émise: 'info', payée: 'success'
 };
 
-interface InvoiceItem {
-  designation: string;
-  quantity: number | string;
-  unit: string;
-  unitPrice: number | string;
-  total: number;
-}
-
-interface InvoiceForm {
-  clientName: string;
-  clientAddress: string;
-  client: string;
-  discount: number;
-  tva: number;
-  paymentConditions: string;
-  items: InvoiceItem[];
-}
+type PeriodFilter = 'all' | 'today' | 'week' | 'month';
 
 export default function Invoices() {
   const [invoices, setInvoices]       = useState<any[]>([]);
-  const [clients, setClients]         = useState<any[]>([]);
   const [loading, setLoading]         = useState<boolean>(true);
-  const [modalOpen, setModalOpen]     = useState<boolean>(false);
   const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [selected, setSelected]       = useState<any>(null);
   const [saving, setSaving]           = useState<boolean>(false);
   const [downloading, setDownloading] = useState<string | null>(null);
 
-  const [form, setForm] = useState<InvoiceForm>({
-    clientName: '', clientAddress: '', client: '',
-    discount: 0, tva: 0, paymentConditions: '', items: []
-  });
-
-  const [currentItem, setCurrentItem] = useState<InvoiceItem>({
-    designation: '', quantity: 1, unit: 'Carton', unitPrice: 0, total: 0
-  });
+  // Filtres
+  const [search, setSearch]           = useState<string>('');
+  const [period, setPeriod]           = useState<PeriodFilter>('all');
 
   const fetchAll = async () => {
     try {
-      const [inv, cli] = await Promise.all([getInvoices(), getClients()]);
-      setInvoices(inv.data);
-      setClients(cli.data);
+      const res = await getInvoices();
+      setInvoices(res.data);
     } catch { toast.error('Erreur chargement'); }
     finally { setLoading(false); }
   };
@@ -64,52 +38,44 @@ export default function Invoices() {
   useEffect(() => { fetchAll(); }, []);
   useAutoRefresh(fetchAll, 60000);
 
-  const handleClientSelect = (id: string) => {
-    const client = clients.find(c => c._id === id);
-    setForm(f => ({
-      ...f,
-      client: id,
-      clientName: client?.name || '',
-      clientAddress: client?.address || ''
-    }));
-  };
+  // ── FILTRAGE ──────────────────────────────────────
+  const filtered = useMemo(() => {
+    let result = [...invoices];
 
-  const updateItemTotal = (item: InvoiceItem): InvoiceItem => ({
-    ...item,
-    total: Number(item.quantity) * Number(item.unitPrice)
-  });
-
-  const addItem = () => {
-    if (!currentItem.designation || !currentItem.quantity || !currentItem.unitPrice) {
-      toast.error("Remplissez tous les champs de l'article");
-      return;
+    // Filtre recherche
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(i =>
+        i.invoiceNumber?.toLowerCase().includes(q) ||
+        i.clientName?.toLowerCase().includes(q)
+      );
     }
-    setForm(f => ({ ...f, items: [...f.items, updateItemTotal(currentItem)] }));
-    setCurrentItem({ designation: '', quantity: 1, unit: 'Carton', unitPrice: 0, total: 0 });
-  };
 
-  const removeItem = (i: number) =>
-    setForm(f => ({ ...f, items: f.items.filter((_, idx) => idx !== i) }));
+    // Filtre période
+    if (period !== 'all') {
+      const now   = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  const subTotal = form.items.reduce((s, i) => s + i.total, 0);
-  const totalHT  = subTotal - Number(form.discount || 0);
-  const totalTTC = totalHT + (totalHT * Number(form.tva || 0) / 100);
-
-  const handleSubmit = async () => {
-    if (!form.clientName || !form.items.length) {
-      toast.error('Client et articles obligatoires');
-      return;
+      result = result.filter(i => {
+        const date = new Date(i.createdAt);
+        if (period === 'today') {
+          return date >= today;
+        }
+        if (period === 'week') {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return date >= weekAgo;
+        }
+        if (period === 'month') {
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          return date >= monthStart;
+        }
+        return true;
+      });
     }
-    setSaving(true);
-    try {
-      await createInvoice({ ...form, subTotal, totalHT, totalTTC });
-      toast.success('Facture créée !');
-      setModalOpen(false);
-      setForm({ clientName: '', clientAddress: '', client: '', discount: 0, tva: 0, paymentConditions: '', items: [] });
-      fetchAll();
-    } catch (err: any) { toast.error(err.response?.data?.message || 'Erreur'); }
-    finally { setSaving(false); }
-  };
+
+    return result;
+  }, [invoices, search, period]);
 
   const handleDelete = async () => {
     setSaving(true);
@@ -137,20 +103,68 @@ export default function Invoices() {
     finally { setDownloading(null); }
   };
 
+  const handlePrint = async (invoice: any) => {
+    setDownloading(invoice._id);
+    try {
+      const res  = await downloadInvoicePDF(invoice._id);
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url  = window.URL.createObjectURL(blob);
+      const printWindow = window.open(url, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.focus();
+          printWindow.print();
+        };
+      } else {
+        const a   = document.createElement('a');
+        a.href    = url;
+        a.download = `Facture-${invoice.invoiceNumber}.pdf`;
+        a.click();
+        toast.success('PDF téléchargé — les popups sont bloquées');
+      }
+      window.URL.revokeObjectURL(url);
+    } catch { toast.error('Erreur impression'); }
+    finally { setDownloading(null); }
+  };
+
   const columns = [
-    { header: 'N° Facture', render: (i: any) => <span className="font-mono font-semibold text-blue-900">{i.invoiceNumber}</span> },
-    { header: 'Client',     key: 'clientName' },
-    { header: 'Total HT',   render: (i: any) => <span>{formatAmount(i.totalHT)} GNF</span> },
-    { header: 'Total TTC',  render: (i: any) => <span className="font-semibold">{formatAmount(i.totalTTC)} GNF</span> },
-    { header: 'Statut',     render: (i: any) => <Badge label={i.status} variant={statusVariant[i.status] || 'default'} /> },
-    { header: 'Date',       render: (i: any) => <span className="text-sm text-gray-500">{formatDate(i.createdAt)}</span> },
-    { header: 'Actions',    render: (i: any) => (
+    { header: 'N° Facture', render: (i: any) => (
+      <span className="font-mono font-semibold text-blue-900 text-sm">{i.invoiceNumber}</span>
+    )},
+    { header: 'Client', render: (i: any) => (
+      <span className="text-sm text-gray-700">{i.clientName}</span>
+    )},
+    { header: 'Total HT',  render: (i: any) => (
+      <span className="text-sm">{formatAmount(i.totalHT)} GNF</span>
+    )},
+    { header: 'Total TTC', render: (i: any) => (
+      <span className="text-sm font-semibold text-blue-900">{formatAmount(i.totalTTC)} GNF</span>
+    )},
+    { header: 'Statut', render: (i: any) => (
+      <Badge label={i.status} variant={statusVariant[i.status] || 'default'} />
+    )},
+    { header: 'Date', render: (i: any) => (
+      <span className="text-xs text-gray-500">{formatDate(i.createdAt)}</span>
+    )},
+    { header: 'Actions', render: (i: any) => (
       <div className="flex items-center gap-2">
-        <button onClick={() => handleDownload(i)} disabled={downloading === i._id}
+        {/* Télécharger PDF */}
+        <button onClick={() => handleDownload(i)}
+          disabled={downloading === i._id}
+          title="Télécharger PDF"
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors disabled:opacity-50">
           <FiDownload size={15} />
         </button>
+        {/* Imprimer */}
+        <button onClick={() => handlePrint(i)}
+          disabled={downloading === i._id}
+          title="Imprimer"
+          className="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors disabled:opacity-50">
+          <FiPrinter size={15} />
+        </button>
+        {/* Supprimer */}
         <button onClick={() => { setSelected(i); setDeleteModal(true); }}
+          title="Supprimer"
           className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
           <FiTrash2 size={15} />
         </button>
@@ -158,154 +172,79 @@ export default function Invoices() {
     )},
   ];
 
+  const periodLabels: Record<PeriodFilter, string> = {
+    all:   'Tout',
+    today: "Aujourd'hui",
+    week:  'Cette semaine',
+    month: 'Ce mois',
+  };
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-blue-900">Factures</h1>
-          <p className="text-gray-500 text-sm">{invoices.length} facture(s)</p>
-        </div>
-        <Button onClick={() => setModalOpen(true)} variant="primary">
-          <FiPlus size={18} /> Nouvelle facture
-        </Button>
+
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-blue-900">Factures</h1>
+        <p className="text-gray-500 text-sm mt-1">
+          {filtered.length} facture(s) {search || period !== 'all' ? 'trouvée(s)' : 'au total'}
+        </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <Table columns={columns} data={invoices} loading={loading} emptyMessage="Aucune facture" />
-      </div>
+      {/* Barre de recherche + filtres */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 space-y-3">
 
-      {/* Modal Créer Facture */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Nouvelle facture" size="xl">
-        <div className="space-y-5">
-
-          {/* Client */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Sélectionner un client</label>
-              <select value={form.client} onChange={(e) => handleClientSelect(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
-                <option value="">Client manuel...</option>
-                {clients.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-              </select>
-            </div>
-            <Input label="Adresse client" value={form.clientAddress}
-              onChange={(e) => setForm({ ...form, clientAddress: e.target.value })} />
-            <Input label="Nom client" value={form.clientName}
-              onChange={(e) => setForm({ ...form, clientName: e.target.value })} required />
-            <Input label="Conditions de paiement" value={form.paymentConditions}
-              onChange={(e) => setForm({ ...form, paymentConditions: e.target.value })} />
-          </div>
-
-          {/* Ajouter article */}
-          <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-sm font-semibold text-gray-700 mb-3">Ajouter un article</p>
-            <div className="grid grid-cols-4 gap-3">
-              <div className="col-span-2 flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Désignation</label>
-                <input value={currentItem.designation}
-                  onChange={(e) => setCurrentItem({ ...currentItem, designation: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900"
-                  placeholder="Ex: Maquereau" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Unité</label>
-                <select value={currentItem.unit}
-                  onChange={(e) => setCurrentItem({ ...currentItem, unit: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
-                  <option>Carton</option>
-                  <option>Kg</option>
-                  <option>Unité</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Quantité</label>
-                <input type="number" value={currentItem.quantity} min="1"
-                  onChange={(e) => setCurrentItem({ ...currentItem, quantity: Number(e.target.value) })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
-              </div>
-              <div className="col-span-2 flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Prix unitaire (GNF)</label>
-                <input type="number" value={currentItem.unitPrice}
-                  onChange={(e) => setCurrentItem({ ...currentItem, unitPrice: Number(e.target.value) })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
-              </div>
-            </div>
-            <Button onClick={addItem} variant="secondary" size="sm" className="mt-3">
-              <FiPlus size={14} /> Ajouter
-            </Button>
-          </div>
-
-          {/* Articles */}
-          {form.items.length > 0 && (
-            <div className="rounded-xl border border-gray-200 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-blue-900 text-white">
-                  <tr>
-                    {['Désignation', 'Qté', 'Unité', 'Prix unit.', 'Total', ''].map(h => (
-                      <th key={h} className="px-4 py-2 text-left">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {form.items.map((item, i) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-2">{item.designation}</td>
-                      <td className="px-4 py-2">{item.quantity}</td>
-                      <td className="px-4 py-2">{item.unit}</td>
-                      <td className="px-4 py-2">{formatAmount(Number(item.unitPrice))} GNF</td>
-                      <td className="px-4 py-2 font-semibold">{formatAmount(item.total)} GNF</td>
-                      <td className="px-4 py-2">
-                        <button onClick={() => removeItem(i)} className="text-red-500 hover:text-red-700">
-                          <FiTrash2 size={14} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* Totaux */}
-          {form.items.length > 0 && (
-            <div className="bg-blue-50 rounded-xl p-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Sous-total</span>
-                <span className="font-semibold">{formatAmount(subTotal)} GNF</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Remise (GNF)</span>
-                <input type="number" value={form.discount}
-                  onChange={(e) => setForm({ ...form, discount: Number(e.target.value) })}
-                  className="w-28 px-2 py-1 border rounded text-sm text-right focus:outline-none" />
-              </div>
-              <div className="flex justify-between">
-                <span>Total HT</span>
-                <span className="font-semibold">{formatAmount(totalHT)} GNF</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>TVA (%)</span>
-                <input type="number" value={form.tva}
-                  onChange={(e) => setForm({ ...form, tva: Number(e.target.value) })}
-                  className="w-28 px-2 py-1 border rounded text-sm text-right focus:outline-none" />
-              </div>
-              <div className="flex justify-between font-bold text-blue-900 border-t border-blue-200 pt-2 text-base">
-                <span>TOTAL TTC</span>
-                <span>{formatAmount(Math.round(totalTTC))} GNF</span>
-              </div>
-            </div>
+        {/* Recherche */}
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher par n° de facture ou nom du client..."
+            className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-900 transition-colors"
+          />
+          {search && (
+            <button onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <FiX size={16} />
+            </button>
           )}
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
-          <Button variant="ghost" onClick={() => setModalOpen(false)}>Annuler</Button>
-          <Button variant="primary" onClick={handleSubmit} loading={saving}>Créer la facture</Button>
+        {/* Filtres période */}
+        <div className="flex gap-2 flex-wrap">
+          {(Object.keys(periodLabels) as PeriodFilter[]).map(p => (
+            <button key={p} onClick={() => setPeriod(p)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all
+                ${period === p
+                  ? 'bg-blue-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}>
+              {periodLabels[p]}
+            </button>
+          ))}
         </div>
-      </Modal>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <Table
+          columns={columns}
+          data={filtered}
+          loading={loading}
+          emptyMessage={
+            search || period !== 'all'
+              ? 'Aucune facture trouvée pour ces critères'
+              : 'Aucune facture'
+          }
+        />
+      </div>
 
       {/* Modal Supprimer */}
       <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer" size="sm">
-        <p className="text-gray-600">Supprimer la facture <strong>{selected?.invoiceNumber}</strong> ?</p>
+        <p className="text-gray-600">
+          Supprimer la facture <strong>{selected?.invoiceNumber}</strong> ?
+        </p>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="ghost" onClick={() => setDeleteModal(false)}>Annuler</Button>
           <Button variant="danger" onClick={handleDelete} loading={saving}>Supprimer</Button>

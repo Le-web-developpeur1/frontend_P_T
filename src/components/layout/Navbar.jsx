@@ -24,10 +24,10 @@ export default function Navbar({ onToggle, isOpen }) {
       position: 'fixed', top: 0, right: 0, zIndex: 30,
       left: isOpen ? '220px' : '64px',
       background: '#fff', borderBottom: '1px solid #e5e7eb',
-      height: '64px', transition: 'left 0.3s ease',
+      height: '60px', transition: 'left 0.3s ease',
       boxShadow: '0 1px 8px rgba(0,0,0,0.06)'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%', padding: '0 20px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%', padding: '0 10px' }}>
 
         {/* Toggle */}
         <button onClick={onToggle} style={{

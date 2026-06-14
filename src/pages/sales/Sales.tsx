@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSales, createSale } from '../../api/saleAPI';
+import { getSales, createSale, updateSale, deleteSale } from '../../api/saleAPI';
 import { downloadInvoicePDF } from '../../api/invoiceAPI';
 import { getProducts } from '../../api/productAPI';
 import { getClients } from '../../api/clientAPI';
@@ -9,8 +9,9 @@ import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
-import { FiPlus, FiTrash2, FiEye, FiAlertTriangle } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiEye, FiAlertTriangle, FiEdit2, FiDownload, FiPrinter } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
+import { useAuth } from '../../context/AuthContext';
 
 const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
   'payé': 'success', 'partiel': 'warning', 'crédit': 'danger'
@@ -35,6 +36,12 @@ interface SaleForm {
   clientManualName: string;
 }
 
+interface EditForm {
+  amountPaid: number;
+  discount: number;
+  status: string;
+}
+
 interface CurrentItem {
   product: string;
   quantity: number | string;
@@ -47,12 +54,17 @@ interface LastInvoice {
 }
 
 export default function Sales() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
+
   const [sales, setSales]             = useState<any[]>([]);
   const [products, setProducts]       = useState<any[]>([]);
   const [clients, setClients]         = useState<any[]>([]);
   const [loading, setLoading]         = useState<boolean>(true);
   const [modalOpen, setModalOpen]     = useState<boolean>(false);
   const [detailModal, setDetailModal] = useState<boolean>(false);
+  const [editModal, setEditModal]     = useState<boolean>(false);
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
   const [selected, setSelected]       = useState<any>(null);
   const [saving, setSaving]           = useState<boolean>(false);
   const [successModal, setSuccessModal] = useState<boolean>(false);
@@ -60,13 +72,12 @@ export default function Sales() {
   const [printLoading, setPrintLoading] = useState<boolean>(false);
 
   const [form, setForm] = useState<SaleForm>({
-    client: '',
-    paymentType: 'comptant',
-    amountPaid: 0,
-    discount: 0,
-    items: [],
-    useManualName: false,
-    clientManualName: '',
+    client: '', paymentType: 'comptant', amountPaid: 0,
+    discount: 0, items: [], useManualName: false, clientManualName: '',
+  });
+
+  const [editForm, setEditForm] = useState<EditForm>({
+    amountPaid: 0, discount: 0, status: 'payé'
   });
 
   const [currentItem, setCurrentItem] = useState<CurrentItem>({
@@ -90,8 +101,7 @@ export default function Sales() {
 
   const addItem = () => {
     if (!currentItem.product || !currentItem.quantity) {
-      toast.error('Sélectionnez un produit et une quantité');
-      return;
+      toast.error('Sélectionnez un produit et une quantité'); return;
     }
     const product = getProductById(currentItem.product);
     if (!product) return;
@@ -103,8 +113,7 @@ export default function Sales() {
         ...currentItem,
         quantity: Number(currentItem.quantity),
         productName: product.name,
-        unitPrice,
-        total
+        unitPrice, total
       }]
     }));
     setCurrentItem({ product: '', quantity: 1, unit: 'carton' });
@@ -126,26 +135,51 @@ export default function Sales() {
         clientName: form.useManualName ? (form.clientManualName || 'Client comptant') : undefined,
         amountPaid: form.paymentType === 'comptant' ? totalAmount : Number(form.amountPaid || 0),
       });
-
       toast.success('Vente enregistrée !');
       setModalOpen(false);
-      setForm({
-        client: '', paymentType: 'comptant', amountPaid: 0,
-        discount: 0, items: [], useManualName: false, clientManualName: ''
-      });
-
+      setForm({ client: '', paymentType: 'comptant', amountPaid: 0, discount: 0, items: [], useManualName: false, clientManualName: '' });
       if (res.data.invoiceId) {
         setLastInvoice({ id: res.data.invoiceId, number: res.data.invoiceNumber });
         setSuccessModal(true);
-      } else {
-        toast.error('Facture non générée');
       }
       fetchAll();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Erreur');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
+  };
+
+  const openEdit = (sale: any) => {
+    setSelected(sale);
+    setEditForm({
+      amountPaid: sale.amountPaid,
+      discount:   sale.discount,
+      status:     sale.status,
+    });
+    setEditModal(true);
+  };
+
+  const handleUpdate = async () => {
+    setSaving(true);
+    try {
+      await updateSale(selected._id, editForm);
+      toast.success('Vente mise à jour !');
+      setEditModal(false);
+      fetchAll();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erreur');
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async () => {
+    setSaving(true);
+    try {
+      await deleteSale(selected._id);
+      toast.success('Vente supprimée et stock restauré !');
+      setDeleteModal(false);
+      fetchAll();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erreur');
+    } finally { setSaving(false); }
   };
 
   const handleDownloadInvoice = async () => {
@@ -160,47 +194,54 @@ export default function Sales() {
       a.click();
       window.URL.revokeObjectURL(url);
       toast.success('Facture téléchargée !');
-    } catch {
-      toast.error('Erreur téléchargement facture');
-    } finally {
-      setPrintLoading(false);
-    }
+    } catch { toast.error('Erreur téléchargement facture'); }
+    finally { setPrintLoading(false); }
   };
 
   const handlePrintInvoice = async () => {
     if (!lastInvoice) return;
     setPrintLoading(true);
     try {
-      const res = await downloadInvoicePDF(lastInvoice.id);
+      const res  = await downloadInvoicePDF(lastInvoice.id);
       const blob = new Blob([res.data], { type: 'application/pdf' });
       const url  = window.URL.createObjectURL(blob);
       const printWindow = window.open(url, '_blank');
       if (printWindow) {
-        printWindow.onload = () => {
-          printWindow.focus();
-          printWindow.print();
-        };
+        printWindow.onload = () => { printWindow.focus(); printWindow.print(); };
       } else {
-        const a   = document.createElement('a');
-        a.href    = url;
-        a.download = `Facture-${lastInvoice.number}.pdf`;
-        a.click();
+        const a = document.createElement('a');
+        a.href  = url; a.download = `Facture-${lastInvoice.number}.pdf`; a.click();
         toast.success('PDF téléchargé — les popups sont bloquées');
       }
       window.URL.revokeObjectURL(url);
-    } catch {
-      toast.error('Erreur impression facture');
-    } finally {
-      setPrintLoading(false);
-    }
+    } catch { toast.error('Erreur impression facture'); }
+    finally { setPrintLoading(false); }
+  };
+
+  const handleDownloadSaleInvoice = async (sale: any) => {
+    try {
+      const invoiceId = sale.invoiceId || null;
+      if (!invoiceId) {
+        toast.error('Aucune facture associée à cette vente');
+        return;
+      }
+      const res = await downloadInvoicePDF(invoiceId);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a   = document.createElement('a');
+      a.href    = url;
+      a.download = `Facture-${sale.saleNumber}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('Facture téléchargée !');
+    } catch { toast.error('Erreur téléchargement'); }
   };
 
   const selectedClient = clients.find(c => c._id === form.client);
 
   const columns = [
-    { header: 'N° Vente',  render: (s: any) => <span className="font-mono text-xs font-semibold text-gray-900">{s.saleNumber}</span> },
+    { header: 'N° Vente',  render: (s: any) => <span className="font-mono text-xs font-semibold text-blue-900">{s.saleNumber}</span> },
     { header: 'Client',    render: (s: any) => <span className="text-sm text-gray-700">{s.clientName}</span> },
-    { header: 'Montant',   render: (s: any) => <span className="text-sm font-semibold text-gray-900">{formatAmount(s.totalAmount)} GNF</span> },
+    { header: 'Montant',   render: (s: any) => <span className="text-sm font-semibold">{formatAmount(s.totalAmount)} GNF</span> },
     { header: 'Payé',      render: (s: any) => <span className="text-sm text-green-600">{formatAmount(s.amountPaid)} GNF</span> },
     { header: 'Reste',     render: (s: any) => (
       <span className={`text-sm font-semibold ${s.remainingAmount > 0 ? 'text-red-600' : 'text-gray-400'}`}>
@@ -215,10 +256,28 @@ export default function Sales() {
     )},
     { header: 'Date',      render: (s: any) => <span className="text-xs text-gray-500">{formatDate(s.createdAt)}</span> },
     { header: 'Actions',   render: (s: any) => (
-      <button onClick={() => { setSelected(s); setDetailModal(true); }}
-        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
-        <FiEye size={16} />
-      </button>
+      <div className="flex items-center gap-1.5">
+        {/* Voir détail */}
+        <button onClick={() => { setSelected(s); setDetailModal(true); }}
+          title="Voir détail"
+          className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+          <FiEye size={14} />
+        </button>
+        {/* Modifier */}
+        <button onClick={() => openEdit(s)}
+          title="Modifier"
+          className="p-1.5 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors">
+          <FiEdit2 size={14} />
+        </button>
+        {/* Supprimer (admin only) */}
+        {isAdmin && (
+          <button onClick={() => { setSelected(s); setDeleteModal(true); }}
+            title="Supprimer"
+            className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+            <FiTrash2 size={14} />
+          </button>
+        )}
+      </div>
     )},
   ];
 
@@ -226,13 +285,11 @@ export default function Sales() {
     <div className="space-y-5">
 
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-blue-900">Caisse — Point de Vente</h1>
-        <p className="text-gray-500 text-sm mt-1">{sales.length} vente(s) enregistrée(s)</p>
-      </div>
-
-      {/* Actions */}
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-blue-900">Caisse — Point de Vente</h1>
+          <p className="text-gray-500 text-sm mt-1">{sales.length} vente(s) enregistrée(s)</p>
+        </div>
         <Button onClick={() => setModalOpen(true)} variant="primary">
           <FiPlus size={18} /> Nouvelle vente
         </Button>
@@ -246,13 +303,9 @@ export default function Sales() {
       {/* Modal Nouvelle Vente */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Nouvelle vente" size="xl">
         <div className="space-y-5">
-
-          {/* Client + Type paiement */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-gray-700">Client</label>
-
-              {/* Toggle */}
               <div className="flex gap-2">
                 <button type="button"
                   onClick={() => setForm({ ...form, client: '', clientManualName: '', useManualName: false })}
@@ -267,21 +320,14 @@ export default function Sales() {
                   Saisie manuelle
                 </button>
               </div>
-
-              {/* Sélection ou saisie */}
               {!form.useManualName ? (
                 <select value={form.client}
                   onChange={(e) => setForm({ ...form, client: e.target.value })}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
                   <option value="">Client comptant</option>
                   {clients.map(c => (
-                    <option key={c._id} value={c._id}
-                      disabled={c.isBlocked && form.paymentType === 'credit'}>
-                      {c.name} {c.isBlocked && form.paymentType === 'credit'
-                        ? '🔴 Bloqué'
-                        : c.currentDebt > 0
-                          ? `(Dette: ${formatAmount(c.currentDebt)} GNF)`
-                          : ''}
+                    <option key={c._id} value={c._id} disabled={c.isBlocked && form.paymentType === 'credit'}>
+                      {c.name} {c.isBlocked && form.paymentType === 'credit' ? '🔴 Bloqué' : c.currentDebt > 0 ? `(Dette: ${formatAmount(c.currentDebt)} GNF)` : ''}
                     </option>
                   ))}
                 </select>
@@ -291,8 +337,6 @@ export default function Sales() {
                   placeholder="Nom du client..."
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
               )}
-
-              {/* Alerte client bloqué */}
               {!form.useManualName && form.client && selectedClient?.isBlocked && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 flex items-start gap-2">
                   <FiAlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={14} />
@@ -302,7 +346,6 @@ export default function Sales() {
                 </div>
               )}
             </div>
-
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-gray-700">Type de paiement</label>
               <select value={form.paymentType}
@@ -328,9 +371,7 @@ export default function Sales() {
                   onChange={(e) => setCurrentItem({ ...currentItem, product: e.target.value })}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
                   <option value="">Sélectionner...</option>
-                  {products.map(p => (
-                    <option key={p._id} value={p._id}>{p.name}</option>
-                  ))}
+                  {products.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
                 </select>
               </div>
               <div className="flex flex-col gap-1">
@@ -360,12 +401,9 @@ export default function Sales() {
               <table className="w-full text-sm">
                 <thead className="bg-blue-900 text-white text-xs">
                   <tr>
-                    <th className="px-3 py-2.5 text-left font-medium">Produit</th>
-                    <th className="px-3 py-2.5 text-left font-medium">Qté</th>
-                    <th className="px-3 py-2.5 text-left font-medium">Unité</th>
-                    <th className="px-3 py-2.5 text-left font-medium">Prix unit.</th>
-                    <th className="px-3 py-2.5 text-left font-medium">Total</th>
-                    <th className="px-3 py-2.5"></th>
+                    {['Produit', 'Qté', 'Unité', 'Prix unit.', 'Total', ''].map(h => (
+                      <th key={h} className="px-3 py-2.5 text-left font-medium">{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -422,12 +460,63 @@ export default function Sales() {
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="ghost" onClick={() => setModalOpen(false)}>Annuler</Button>
           <Button variant="primary" onClick={handleSubmit} loading={saving}
-            disabled={
-              !form.useManualName &&
-              form.paymentType === 'credit' &&
-              !!selectedClient?.isBlocked
-            }>
+            disabled={!form.useManualName && form.paymentType === 'credit' && !!selectedClient?.isBlocked}>
             Enregistrer la vente
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Modal Modifier */}
+      <Modal isOpen={editModal} onClose={() => setEditModal(false)}
+        title={`Modifier — ${selected?.saleNumber}`} size="sm">
+        <div className="space-y-4">
+
+          {/* Info vente */}
+          <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-1">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Client</span>
+              <span className="font-semibold">{selected?.clientName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Montant total</span>
+              <span className="font-semibold">{formatAmount(selected?.totalAmount || 0)} GNF</span>
+            </div>
+          </div>
+
+          {/* Montant payé */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Montant payé (GNF)</label>
+            <input type="number" value={editForm.amountPaid}
+              onChange={(e) => setEditForm({ ...editForm, amountPaid: Number(e.target.value) })}
+              max={selected?.totalAmount}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
+          </div>
+
+          {/* Remise */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Remise (GNF)</label>
+            <input type="number" value={editForm.discount}
+              onChange={(e) => setEditForm({ ...editForm, discount: Number(e.target.value) })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
+          </div>
+
+          {/* Statut */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Statut</label>
+            <select value={editForm.status}
+              onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
+              <option value="payé">Payé</option>
+              <option value="partiel">Partiel</option>
+              <option value="crédit">Crédit</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="ghost" onClick={() => setEditModal(false)}>Annuler</Button>
+          <Button variant="primary" onClick={handleUpdate} loading={saving}>
+            Mettre à jour
           </Button>
         </div>
       </Modal>
@@ -486,6 +575,27 @@ export default function Sales() {
         )}
       </Modal>
 
+      {/* Modal Supprimer (admin only) */}
+      {isAdmin && (
+        <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer la suppression" size="sm">
+          <div className="space-y-3">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+              <FiAlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
+              <div className="text-sm text-red-700">
+                <p className="font-semibold">Cette action est irréversible !</p>
+                <p className="mt-1">La vente <strong>{selected?.saleNumber}</strong> sera supprimée et le stock sera restauré automatiquement.</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button variant="ghost" onClick={() => setDeleteModal(false)}>Annuler</Button>
+            <Button variant="danger" onClick={handleDelete} loading={saving}>
+              Supprimer définitivement
+            </Button>
+          </div>
+        </Modal>
+      )}
+
       {/* Modal Succès */}
       <Modal isOpen={successModal} onClose={() => setSuccessModal(false)} title="Vente enregistrée !" size="sm">
         <div className="text-center space-y-5">
@@ -502,14 +612,10 @@ export default function Sales() {
           </div>
           <div className="flex flex-col gap-3">
             <Button variant="primary" onClick={handleDownloadInvoice} loading={printLoading} className="w-full">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Télécharger la facture PDF
+              <FiDownload size={16} /> Télécharger la facture PDF
             </Button>
             <Button variant="ghost" onClick={handlePrintInvoice} loading={printLoading} className="w-full">
-              🖨️ Imprimer la facture
+              <FiPrinter size={16} /> Imprimer la facture
             </Button>
             <Button variant="ghost" onClick={() => setSuccessModal(false)} className="w-full">
               Fermer
