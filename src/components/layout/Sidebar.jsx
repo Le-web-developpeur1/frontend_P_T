@@ -22,7 +22,6 @@ const links = [
 
 export default function Sidebar({ isOpen }) {
   const { config } = useSystem();
-  const API_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
 
   return (
     <aside style={{
@@ -43,7 +42,7 @@ export default function Sidebar({ isOpen }) {
       }}>
         {config?.logo && (
           <img
-            src={`${API_URL}/${config.logo}`}
+            src={config.logo}
             alt="logo"
             style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
           />

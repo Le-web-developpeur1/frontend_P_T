@@ -63,7 +63,7 @@ export default function Settings() {
     getSystemConfig().then(res => {
       setSysForm(res.data);
       // ← URL dynamique ici
-      if (res.data.logo) setLogoPreview(`${API_URL}/${res.data.logo}`);
+      if (res.data.logo) setLogoPreview(res.data.logo);
     });
     getSettings().then(res => setUserForm(res.data)).catch(() => {});
   }, []);
@@ -90,8 +90,8 @@ export default function Settings() {
       const formData = new FormData();
       formData.append('logo', logoFile);
       const res = await uploadLogo(formData);
-      // Après upload, mettre à jour la preview avec l'URL du serveur
-      if (res.data.logo) setLogoPreview(`${API_URL}/${res.data.logo}`);
+
+      if (res.data.logo) setLogoPreview(res.data.logo);
       toast.success('Logo mis à jour !');
       setLogoFile(null);
     } catch { toast.error('Erreur upload logo'); }
