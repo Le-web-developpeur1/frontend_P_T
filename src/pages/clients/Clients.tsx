@@ -10,6 +10,7 @@ import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2, FiDollarSign } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
+import { useAuth } from "../../context/AuthContext";
 
 const emptyForm = { name: '', phone: '', address: '', creditLimit: 0 };
 
@@ -24,6 +25,9 @@ export default function Clients() {
   const [payAmount, setPayAmount]   = useState('');
   const [saving, setSaving]         = useState(false);
   const [search, setSearch]         = useState('');
+
+  const { user } = useAuth();
+  const canDelete = user?.role === "admin" || user?.role === "gestionnaire";
 
   const fetchClients = async () => {
     try {
@@ -117,10 +121,12 @@ export default function Clients() {
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
           <FiEdit2 size={15} />
         </button>
-        <button onClick={() => openDelete(c)}
-          className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
-          <FiTrash2 size={15} />
-        </button>
+        {canDelete && (
+          <button onClick={() => openDelete(c)}
+            className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+            <FiTrash2 size={15} />
+          </button>
+        )}
       </div>
     )},
   ];

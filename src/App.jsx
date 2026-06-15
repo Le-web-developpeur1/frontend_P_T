@@ -29,8 +29,9 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
+      <Route path="/login" element={!user ? <Login /> : <Navigate to={user?.role === 'caissier' ? "/caisse" : "/"} />} />
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+      
         <Route index element={<Dashboard />} />
         <Route path="caisse" element={<Caisse />} />
         <Route path="products" element={<Products />} />

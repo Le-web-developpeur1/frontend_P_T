@@ -8,6 +8,8 @@ import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
 import { FiTrash2, FiDownload, FiPrinter, FiSearch, FiX } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
+import { useAuth } from "../../context/AuthContext";
+
 
 const statusVariant: Record<string, 'default' | 'info' | 'success' | 'warning' | 'danger'> = {
   brouillon: 'default', émise: 'info', payée: 'success'
@@ -22,6 +24,10 @@ export default function Invoices() {
   const [selected, setSelected]       = useState<any>(null);
   const [saving, setSaving]           = useState<boolean>(false);
   const [downloading, setDownloading] = useState<string | null>(null);
+
+  const { user } = useAuth();
+  const canDelete = user?.role === 'admin' || user?.role === 'gestionnaire';
+
 
   // Filtres
   const [search, setSearch]           = useState<string>('');
@@ -163,11 +169,13 @@ export default function Invoices() {
           <FiPrinter size={15} />
         </button>
         {/* Supprimer */}
-        <button onClick={() => { setSelected(i); setDeleteModal(true); }}
+        {canDelete && (
+          <button onClick={() => { setSelected(i); setDeleteModal(true); }}
           title="Supprimer"
           className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
           <FiTrash2 size={15} />
         </button>
+        )}
       </div>
     )},
   ];

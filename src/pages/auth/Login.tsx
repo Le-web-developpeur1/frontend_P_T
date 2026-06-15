@@ -31,7 +31,7 @@ export default function Login() {
       const res = await login(form);
       loginUser(res.data, res.data.token);
       toast.success(`Bienvenue ${res.data.name} !`);
-      navigate('/');
+      navigate(res.data.role === 'caissier' ? "/caisse" : '/');
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Erreur de connexion');
     } finally {

@@ -9,6 +9,7 @@ import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
+import { useAuth } from "../../context/AuthContext";
 
 interface ExpenseForm {
   title: string;
@@ -46,6 +47,10 @@ export default function Expenses() {
   const [saving, setSaving]           = useState<boolean>(false);
   const [search, setSearch]           = useState<string>('');
   const [total, setTotal]             = useState<number>(0);
+
+  const { user } = useAuth();
+  const canDelete = user?.role === 'admin' || user?.role === 'gestionnaire';
+
 
   const fetchExpenses = async () => {
     try {
@@ -115,10 +120,12 @@ export default function Expenses() {
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
           <FiEdit2 size={15} />
         </button>
-        <button onClick={() => openDelete(e)}
-          className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
-          <FiTrash2 size={15} />
-        </button>
+        {canDelete && (
+          <button onClick={() => openDelete(e)}
+            className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+            <FiTrash2 size={15} />
+          </button>
+        )}
       </div>
     )},
   ];
