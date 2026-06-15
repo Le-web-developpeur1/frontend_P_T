@@ -22,6 +22,7 @@ const links = [
 
 export default function Sidebar({ isOpen }) {
   const { config } = useSystem();
+  const API_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
 
   return (
     <aside style={{
@@ -40,17 +41,12 @@ export default function Sidebar({ isOpen }) {
         padding: '18px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)',
         minHeight: '68px'
       }}>
-        {config?.logo ? (
-          <img src={`${import.meta.env.VITE_API_URL}/${config.logo}`} alt="logo"
-            style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} />
-        ) : (
-          <div style={{
-            width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
-            background: 'rgba(212,160,23,0.2)', border: '1px solid rgba(212,160,23,0.3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <span style={{ fontSize: '16px', fontWeight: 900, color: '#D4A017' }}>S</span>
-          </div>
+        {config?.logo && (
+          <img
+            src={`${API_URL}/${config.logo}`}
+            alt="logo"
+            style={{ width: '36px', height: '36px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
+          />
         )}
         {isOpen && (
           <div style={{ overflow: 'hidden', flex: 1 }}>
