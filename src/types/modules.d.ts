@@ -61,6 +61,13 @@ declare module '../../api/damageApi' {
   export function deleteDamage(id: string): Promise<any>;
 }
 
+declare module '../../api/notificationAPI' {
+  export function getNotifications(): Promise<any>;
+  export function markAsRead(id: string): Promise<any>;
+  export function markAllAsRead(): Promise<any>;
+  export function deleteNotification(id: string): Promise<any>;
+}
+
 // Hooks
 declare module '../../hooks/useAutoRefresh' {
   export default function useAutoRefresh(callback: () => void, interval: number): void;

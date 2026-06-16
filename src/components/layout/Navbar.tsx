@@ -3,7 +3,7 @@ import { FiMenu, FiBell, FiLogOut, FiCheck, FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { getNotifications, markAsRead, markAllAsRead, deleteNotification } from '../../api/notificationAPI';
+import { getNotifications, markAsRead, markAllAsRead, deleteNotification } from '../../api/notificationApi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 interface NotificationItem {
