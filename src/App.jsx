@@ -14,6 +14,7 @@ import Reports from './pages/reports/Reports';
 import Users from './pages/users/Users';
 import Damages from './pages/damages/Damages';
 import Credits from './pages/credits/Credits';
+import Employees from './pages/employees/Employees';
 import Settings from './pages/settings/Settings';
 import Loader from './components/common/Loader';
 
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="reports" element={<Reports />} />
         <Route path="users" element={<Users />} />
         <Route path="damages" element={<Damages />} />
+        <Route path="employees" element={<Employees />} />
         <Route path="settings" element={<Settings />} />
 
         {/* Toute route inconnue → login */}

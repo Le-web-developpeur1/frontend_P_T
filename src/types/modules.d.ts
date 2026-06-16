@@ -68,6 +68,17 @@ declare module '../../api/notificationAPI' {
   export function deleteNotification(id: string): Promise<any>;
 }
 
+declare module '../../api/employeeAPI' {
+  export function getEmployees(): Promise<any>;
+  export function getEmployee(id: string): Promise<any>;
+  export function createEmployee(data: any): Promise<any>;
+  export function updateEmployee(id: string, data: any): Promise<any>;
+  export function deleteEmployee(id: string): Promise<any>;
+  export function paySalary(id: string, data: any): Promise<any>;
+  export function getSalaryStats(): Promise<any>;
+  export function downloadSalarySlip(paymentId: string): Promise<any>;
+}
+
 // Hooks
 declare module '../../hooks/useAutoRefresh' {
   export default function useAutoRefresh(callback: () => void, interval: number): void;
