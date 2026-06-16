@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   getEmployees, getEmployee, createEmployee, updateEmployee, deleteEmployee,
   paySalary, getSalaryStats, downloadSalarySlip
-} from '../../api/employeeAPI';
+} from '../../api/employeeApi';
 import { formatAmount, formatDate } from '../../utils/formatAmount';
 import Table from '../../components/common/Table';
 import Modal from '../../components/common/Modal';
