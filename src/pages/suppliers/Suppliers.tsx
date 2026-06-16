@@ -60,7 +60,6 @@ export default function Suppliers() {
 
   const handleSubmit = async () => {
     if (!form.name) { toast.error('Le nom est obligatoire'); return; }
-    if (!selected) return;
     setSaving(true);
     try {
       selected ? await updateSupplier(selected._id, form) : await createSupplier(form);
