@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  getEmployees, createEmployee, updateEmployee, deleteEmployee,
+  getEmployees, getEmployee, createEmployee, updateEmployee, deleteEmployee,
   paySalary, getSalaryStats, downloadSalarySlip
 } from '../../api/employeeAPI';
 import { formatAmount, formatDate } from '../../utils/formatAmount';
@@ -85,7 +85,7 @@ export default function Employees() {
     setEmployeeDetail(null);
     setDetailModal(true);
     try {
-      const res = await import('../../api/employeeAPI').then(m => m.getEmployee(emp._id));
+      const res = await getEmployee(emp._id);
       setEmployeeDetail(res.data);
     } catch { toast.error('Erreur chargement détails'); }
   };
