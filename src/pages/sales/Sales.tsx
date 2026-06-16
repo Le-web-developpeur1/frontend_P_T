@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getSales, createSale, updateSale, deleteSale } from '../../api/saleAPI';
 import { downloadInvoicePDF } from '../../api/invoiceAPI';
 import { getProducts } from '../../api/productAPI';
@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { FiPlus, FiTrash2, FiEye, FiAlertTriangle, FiEdit2, FiDownload, FiPrinter } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 import { useAuth } from '../../context/AuthContext';
+import { FiSearch, FiX } from 'react-icons/fi';
 
 const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
   'payé': 'success', 'partiel': 'warning', 'crédit': 'danger'
@@ -70,6 +71,11 @@ export default function Sales() {
   const [successModal, setSuccessModal] = useState<boolean>(false);
   const [lastInvoice, setLastInvoice]   = useState<LastInvoice | null>(null);
   const [printLoading, setPrintLoading] = useState<boolean>(false);
+
+  const [search, setSearch] = useState<string>('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterPeriod, setFilterPeriod] = useState<string>('all');
 
   const [form, setForm] = useState<SaleForm>({
     client: '', paymentType: 'comptant', amountPaid: 0,
@@ -238,6 +244,44 @@ export default function Sales() {
 
   const selectedClient = clients.find(c => c._id === form.client);
 
+  const filteredSales = useMemo(() => {
+    let result = [...sales];
+
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(s => 
+        s.clientName?.toLowerCase().includes(q) ||
+        s.saleNumber?.toLowerCase().includes(q)
+      );
+    } 
+
+    if (filterType !== "all") {
+      result = result.filter(s => s.paymentType === filterType);
+    }
+
+    if (filterPeriod !== "all") {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      result = result.filter(s => {
+        const date = new Date(s.createdAt);
+        if (filterPeriod === "today") return date >= today;
+        if (filterPeriod === "week") {
+          const weekAgo = new Date(today);
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          return date >= weekAgo;
+        }
+        if (filterPeriod === 'month') {
+          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+          return date >= monthStart;
+        }
+        return true;
+      });
+    }
+
+    return result;
+  }, [sales, search, filterPeriod, filterStatus, filterType]);
+
   const columns = [
     { header: 'N° Vente',  render: (s: any) => <span className="font-mono text-xs font-semibold text-blue-900">{s.saleNumber}</span> },
     { header: 'Client',    render: (s: any) => <span className="text-sm text-gray-700">{s.clientName}</span> },
@@ -287,17 +331,78 @@ export default function Sales() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-blue-900">Caisse — Point de Vente</h1>
-          <p className="text-gray-500 text-sm mt-1">{sales.length} vente(s) enregistrée(s)</p>
+          <h1 className="text-2xl font-bold text-blue-900">Point de Vente</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            {filteredSales.length} vente(s) {search || filterStatus !== 'all' || filterType !== 'all' || filterPeriod !== 'all' ? 'trouvée(s)' : 'enregistrée(s)'}
+          </p>
         </div>
         <Button onClick={() => setModalOpen(true)} variant="primary">
           <FiPlus size={18} /> Nouvelle vente
         </Button>
       </div>
 
+      {/* Recherche + Filtres */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 space-y-3">
+
+        {/* Recherche */}
+        <div className="relative">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher par n° de vente ou nom du client..."
+            className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-900 transition-colors"
+          />
+          {search && (
+            <button onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <FiX size={16} />
+            </button>
+          )}
+        </div>
+
+        {/* Filtres */}
+        <div className="flex flex-wrap gap-3">
+
+          {/* Statut */}
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:border-blue-900">
+            <option value="all">Tous les statuts</option>
+            <option value="payé">Payé</option>
+            <option value="partiel">Partiel</option>
+            <option value="crédit">Crédit</option>
+          </select>
+
+          {/* Type paiement */}
+          <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
+            className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:border-blue-900">
+            <option value="all">Tous les types</option>
+            <option value="comptant">Comptant</option>
+            <option value="credit">Crédit</option>
+          </select>
+
+          {/* Période */}
+          <div className="flex gap-2">
+            {[
+              { value: 'all',   label: 'Tout'          },
+              { value: 'today', label: "Aujourd'hui"   },
+              { value: 'week',  label: 'Cette semaine' },
+              { value: 'month', label: 'Ce mois'       },
+            ].map(({ value, label }) => (
+              <button key={value} onClick={() => setFilterPeriod(value)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all
+                  ${filterPeriod === value ? 'bg-blue-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <Table columns={columns} data={sales} loading={loading} emptyMessage="Aucune vente enregistrée" />
+        <Table columns={columns} data={filteredSales} loading={loading} emptyMessage="Aucune vente enregistrée" />
       </div>
 
       {/* Modal Nouvelle Vente */}

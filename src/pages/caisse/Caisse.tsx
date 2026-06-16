@@ -70,35 +70,63 @@ export default function Caisse() {
         <p className="text-gray-500 text-sm mt-1">Vue globale de la caisse depuis le début</p>
       </div>
 
-      {/* Solde caisse — carte principale */}
-      <div className="bg-gradient-to-r from-[#1A2B5F] to-[#0f1a3a] rounded-2xl p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-white/60 text-sm font-medium">SOLDE EN CAISSE</p>
-            <p className={`text-4xl font-black mt-2 ${data.soldeCaisse >= 0 ? 'text-[#D4A017]' : 'text-red-400'}`}>
-              {formatAmount(data.soldeCaisse)} GNF
-            </p>
-            <p className="text-white/50 text-xs mt-2">
-              Total encaissé — Total dépenses
-            </p>
+      {/* 4 cartes séparées */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        {/* Solde en caisse */}
+        <div className="bg-gradient-to-br from-[#1A2B5F] to-[#0f1a3a] rounded-2xl p-5 text-white">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-white/60 text-xs font-medium">SOLDE EN CAISSE</p>
+            <div className="bg-white/10 rounded-xl p-2">
+              <FiDollarSign size={18} className="text-[#D4A017]" />
+            </div>
           </div>
-          <div className="bg-white/10 rounded-2xl p-5">
-            <FiDollarSign size={36} className="text-[#D4A017]" />
-          </div>
+          <p className={`text-2xl font-black ${data.soldeCaisse >= 0 ? 'text-[#D4A017]' : 'text-red-400'}`}>
+            {formatAmount(data.soldeCaisse)} GNF
+          </p>
+          <p className="text-white/40 text-xs mt-1">Encaissé — Dépenses</p>
         </div>
 
-        {/* Mini stats dans la carte */}
-        <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/10">
-          {[
-            { label: 'Total encaissé',  value: `${formatAmount(data.totalEncaisse)} GNF`,  color: 'text-green-400'  },
-            { label: 'Total dépenses',  value: `${formatAmount(data.totalDepenses)} GNF`,  color: 'text-red-400'    },
-            { label: 'Transactions',    value: String(data.nbTransactions),                color: 'text-blue-300'   },
-          ].map(({ label, value, color }) => (
-            <div key={label}>
-              <p className="text-white/50 text-xs">{label}</p>
-              <p className={`font-bold text-sm mt-0.5 ${color}`}>{value}</p>
+        {/* Total encaissé */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-gray-500 text-xs font-medium">TOTAL ENCAISSÉ</p>
+            <div className="bg-green-50 rounded-xl p-2">
+              <FiTrendingUp size={18} className="text-green-600" />
             </div>
-          ))}
+          </div>
+          <p className="text-2xl font-black text-green-600">
+            {formatAmount(data.totalEncaisse)} GNF
+          </p>
+          <p className="text-gray-400 text-xs mt-1">Depuis le début</p>
+        </div>
+
+        {/* Total dépenses */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-gray-500 text-xs font-medium">TOTAL DÉPENSES</p>
+            <div className="bg-red-50 rounded-xl p-2">
+              <FiTrendingDown size={18} className="text-red-600" />
+            </div>
+          </div>
+          <p className="text-2xl font-black text-red-600">
+            {formatAmount(data.totalDepenses)} GNF
+          </p>
+          <p className="text-gray-400 text-xs mt-1">Depuis le début</p>
+        </div>
+
+        {/* Transactions */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-gray-500 text-xs font-medium">TRANSACTIONS</p>
+            <div className="bg-blue-50 rounded-xl p-2">
+              <FiActivity size={18} className="text-blue-600" />
+            </div>
+          </div>
+          <p className="text-2xl font-black text-blue-900">
+            {data.nbTransactions}
+          </p>
+          <p className="text-gray-400 text-xs mt-1">Ventes enregistrées</p>
         </div>
       </div>
 
@@ -211,7 +239,7 @@ export default function Caisse() {
         </div>
       </div>
 
-      {/* Tabs ventes / dépenses */}
+      {/* Tabs ventes / dépenses
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="flex border-b border-gray-100">
           <button
@@ -289,7 +317,7 @@ export default function Caisse() {
             </table>
           )}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
