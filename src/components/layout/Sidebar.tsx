@@ -36,14 +36,11 @@ export default function Sidebar({ isOpen, isMobile, onCloseMobile }: SidebarProp
 
   const links = allLinks.filter(link => user?.role && link.roles.includes(user.role));
 
-  // Sur mobile : sidebar en overlay plein écran, visible seulement si isOpen
-  // Sur desktop : largeur réduite/étendue normale
   const sidebarWidth = isMobile ? '280px' : (isOpen ? '220px' : '64px');
   const sidebarTransform = isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)';
 
   return (
     <>
-      {/* Overlay sombre derrière la sidebar mobile */}
       {isMobile && isOpen && (
         <div
           onClick={onCloseMobile}
@@ -65,7 +62,6 @@ export default function Sidebar({ isOpen, isMobile, onCloseMobile }: SidebarProp
         overflow: 'hidden'
       }}>
 
-        {/* Logo */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: '10px',
           padding: '18px 14px', borderBottom: '1px solid rgba(255,255,255,0.08)',
@@ -96,7 +92,6 @@ export default function Sidebar({ isOpen, isMobile, onCloseMobile }: SidebarProp
             )}
           </div>
 
-          {/* Bouton fermer sur mobile */}
           {isMobile && (
             <button onClick={onCloseMobile} style={{
               background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px',
@@ -107,8 +102,7 @@ export default function Sidebar({ isOpen, isMobile, onCloseMobile }: SidebarProp
           )}
         </div>
 
-        {/* Navigation */}
-        <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'visible' }}>
+        <nav style={{ flex: 1, padding: '10px 8px', overflowY: 'auto' }}>
           {links.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to} to={to} end={to === '/'}
@@ -144,7 +138,6 @@ export default function Sidebar({ isOpen, isMobile, onCloseMobile }: SidebarProp
           ))}
         </nav>
 
-        {/* Version */}
         {(isOpen || isMobile) && (
           <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '10px', margin: 0 }}>Version 1.0.0</p>

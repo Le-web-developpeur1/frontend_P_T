@@ -210,7 +210,6 @@ export default function Products() {
   return (
     <div className="space-y-5">
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-blue-900">Produits</h1>
@@ -221,7 +220,6 @@ export default function Products() {
         </Button>
       </div>
 
-      {/* Recherche */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
         <input
           type="text"
@@ -232,12 +230,10 @@ export default function Products() {
         />
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <Table columns={columns} data={filtered} loading={loading} emptyMessage="Aucun produit trouvé" />
       </div>
 
-      {/* Modal Créer/Modifier */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -262,7 +258,6 @@ export default function Products() {
         </div>
       </Modal>
 
-      {/* Modal Ajuster Stock */}
       <Modal isOpen={stockModal} onClose={() => setStockModal(false)} title={`Ajuster le stock — ${selected?.name}`}>
         <div className="space-y-4">
           <div className="flex flex-col gap-1">
@@ -301,7 +296,6 @@ export default function Products() {
         </div>
       </Modal>
 
-      {/* Modal Supprimer */}
       <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer la suppression" size="sm">
         <p className="text-gray-600">
           Voulez-vous vraiment désactiver le produit <strong>{selected?.name}</strong> ?

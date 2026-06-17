@@ -130,7 +130,6 @@ export default function Navbar({ onToggle, isOpen, isMobile  }: NavbarProps) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 
-          {/* Notifications */}
           <div style={{ position: 'relative' }} ref={dropdownRef}>
             <button onClick={() => setDropdownOpen(!dropdownOpen)} style={{
               padding: '8px', borderRadius: '8px', border: 'none',
@@ -152,7 +151,6 @@ export default function Navbar({ onToggle, isOpen, isMobile  }: NavbarProps) {
               )}
             </button>
 
-            {/* Dropdown */}
             {dropdownOpen && (
               <div style={{
                 position: 'absolute', top: '48px', right: 0,
@@ -163,7 +161,6 @@ export default function Navbar({ onToggle, isOpen, isMobile  }: NavbarProps) {
                 display: 'flex', flexDirection: 'column',
                 overflow: 'hidden', zIndex: 100
               }}>
-                {/* Header dropdown */}
                 <div style={{
                   padding: '14px 16px', borderBottom: '1px solid #f0f0f0',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between'
@@ -181,7 +178,6 @@ export default function Navbar({ onToggle, isOpen, isMobile  }: NavbarProps) {
                   )}
                 </div>
 
-                {/* Liste */}
                 <div style={{ overflowY: 'auto', flex: 1 }}>
                   {notifications.length === 0 ? (
                     <div style={{ padding: '40px 20px', textAlign: 'center' }}>
@@ -249,7 +245,6 @@ export default function Navbar({ onToggle, isOpen, isMobile  }: NavbarProps) {
 
           <div style={{ width: '1px', height: '28px', background: '#e5e7eb' }} />
 
-          {/* User */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ textAlign: 'right', display: isMobile ? 'none' : 'block' }}>
               <p style={{ fontSize: '13px', fontWeight: 700, color: '#1A2B5F', margin: 0 }}>{user?.name}</p>

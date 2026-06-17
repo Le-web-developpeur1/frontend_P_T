@@ -195,7 +195,6 @@ export default function Employees() {
   return (
     <div className="space-y-5">
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-blue-900">Salaires & Employés</h1>
@@ -206,7 +205,6 @@ export default function Employees() {
         </Button>
       </div>
 
-      {/* Stats */}
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -228,7 +226,6 @@ export default function Employees() {
         </div>
       )}
 
-      {/* Alerte employés non payés */}
       {stats?.unpaidEmployees?.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -245,12 +242,10 @@ export default function Employees() {
         </div>
       )}
 
-      {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <Table columns={columns} data={employees} loading={loading} emptyMessage="Aucun employé" />
       </div>
 
-      {/* Modal Créer/Modifier */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}
         title={selected ? "Modifier l'employé" : 'Nouvel employé'} size="md">
         <div className="space-y-4">
@@ -289,7 +284,6 @@ export default function Employees() {
         </div>
       </Modal>
 
-      {/* Modal Paiement */}
       <Modal isOpen={payModal} onClose={() => setPayModal(false)}
         title={`Payer le salaire — ${selected?.name}`} size="sm">
         <div className="space-y-4">
@@ -321,7 +315,6 @@ export default function Employees() {
         </div>
       </Modal>
 
-      {/* Modal Détail */}
       <Modal isOpen={detailModal} onClose={() => setDetailModal(false)}
         title={`Historique — ${selected?.name}`} size="lg">
         {!employeeDetail ? (
@@ -371,7 +364,6 @@ export default function Employees() {
         )}
       </Modal>
 
-      {/* Modal Supprimer */}
       <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer" size="sm">
         <p className="text-gray-600">Désactiver <strong>{selected?.name}</strong> ?</p>
         <div className="flex justify-end gap-3 mt-6">

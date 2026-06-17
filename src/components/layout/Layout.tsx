@@ -11,7 +11,6 @@ export default function Layout() {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      // Sur mobile, la sidebar démarre fermée
       if (mobile) setIsOpen(false);
       else setIsOpen(true);
     };
@@ -23,7 +22,6 @@ export default function Layout() {
   const toggleSidebar = () => setIsOpen(!isOpen);
   const closeMobileSidebar = () => setIsOpen(false);
 
-  // Sur desktop : la marge dépend de isOpen. Sur mobile : pas de marge (sidebar en overlay)
   const contentMarginLeft = isMobile ? '0px' : (isOpen ? '220px' : '64px');
 
   return (

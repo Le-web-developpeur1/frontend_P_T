@@ -58,23 +58,23 @@ export default function Sales() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  const [sales, setSales]             = useState<any[]>([]);
-  const [products, setProducts]       = useState<any[]>([]);
-  const [clients, setClients]         = useState<any[]>([]);
-  const [loading, setLoading]         = useState<boolean>(true);
-  const [modalOpen, setModalOpen]     = useState<boolean>(false);
-  const [detailModal, setDetailModal] = useState<boolean>(false);
-  const [editModal, setEditModal]     = useState<boolean>(false);
-  const [deleteModal, setDeleteModal] = useState<boolean>(false);
-  const [selected, setSelected]       = useState<any>(null);
-  const [saving, setSaving]           = useState<boolean>(false);
+  const [sales, setSales]               = useState<any[]>([]);
+  const [products, setProducts]         = useState<any[]>([]);
+  const [clients, setClients]           = useState<any[]>([]);
+  const [loading, setLoading]           = useState<boolean>(true);
+  const [modalOpen, setModalOpen]       = useState<boolean>(false);
+  const [detailModal, setDetailModal]   = useState<boolean>(false);
+  const [editModal, setEditModal]       = useState<boolean>(false);
+  const [deleteModal, setDeleteModal]   = useState<boolean>(false);
+  const [selected, setSelected]         = useState<any>(null);
+  const [saving, setSaving]             = useState<boolean>(false);
   const [successModal, setSuccessModal] = useState<boolean>(false);
   const [lastInvoice, setLastInvoice]   = useState<LastInvoice | null>(null);
   const [printLoading, setPrintLoading] = useState<boolean>(false);
 
-  const [search, setSearch] = useState<string>('');
+  const [search, setSearch]             = useState<string>('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterType, setFilterType] = useState<string>('all');
+  const [filterType, setFilterType]     = useState<string>('all');
   const [filterPeriod, setFilterPeriod] = useState<string>('all');
 
   const [form, setForm] = useState<SaleForm>({
@@ -133,7 +133,6 @@ export default function Sales() {
 
   const handleSubmit = async () => {
     if (!form.items.length) { toast.error('Ajoutez au moins un article'); return; }
-    console.log('Items envoyés:', form.items); // ← ajoute ça
     setSaving(true);
     try {
       const res = await createSale({
@@ -225,23 +224,23 @@ export default function Sales() {
     finally { setPrintLoading(false); }
   };
 
-  const handleDownloadSaleInvoice = async (sale: any) => {
-    try {
-      const invoiceId = sale.invoiceId || null;
-      if (!invoiceId) {
-        toast.error('Aucune facture associée à cette vente');
-        return;
-      }
-      const res = await downloadInvoicePDF(invoiceId);
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a   = document.createElement('a');
-      a.href    = url;
-      a.download = `Facture-${sale.saleNumber}.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success('Facture téléchargée !');
-    } catch { toast.error('Erreur téléchargement'); }
-  };
+  // const handleDownloadSaleInvoice = async (sale: any) => {
+  //   try {
+  //     const invoiceId = sale.invoiceId || null;
+  //     if (!invoiceId) {
+  //       toast.error('Aucune facture associée à cette vente');
+  //       return;
+  //     }
+  //     const res = await downloadInvoicePDF(invoiceId);
+  //     const url = window.URL.createObjectURL(new Blob([res.data]));
+  //     const a   = document.createElement('a');
+  //     a.href    = url;
+  //     a.download = `Facture-${sale.saleNumber}.pdf`;
+  //     a.click();
+  //     window.URL.revokeObjectURL(url);
+  //     toast.success('Facture téléchargée !');
+  //   } catch { toast.error('Erreur téléchargement'); }
+  // };
 
   const selectedClient = clients.find(c => c._id === form.client);
 
@@ -302,19 +301,16 @@ export default function Sales() {
     { header: 'Date',      render: (s: any) => <span className="text-xs text-gray-500">{formatDate(s.createdAt)}</span> },
     { header: 'Actions',   render: (s: any) => (
       <div className="flex items-center gap-1.5">
-        {/* Voir détail */}
         <button onClick={() => { setSelected(s); setDetailModal(true); }}
           title="Voir détail"
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
           <FiEye size={14} />
         </button>
-        {/* Modifier */}
         <button onClick={() => openEdit(s)}
           title="Modifier"
           className="p-1.5 rounded-lg bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition-colors">
           <FiEdit2 size={14} />
         </button>
-        {/* Supprimer (admin only) */}
         {isAdmin && (
           <button onClick={() => { setSelected(s); setDeleteModal(true); }}
             title="Supprimer"
@@ -329,7 +325,6 @@ export default function Sales() {
   return (
     <div className="space-y-5">
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-blue-900">Point de Vente</h1>
@@ -342,10 +337,8 @@ export default function Sales() {
         </Button>
       </div>
 
-      {/* Recherche + Filtres */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 space-y-3">
 
-        {/* Recherche */}
         <div className="relative">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
@@ -363,10 +356,8 @@ export default function Sales() {
           )}
         </div>
 
-        {/* Filtres */}
         <div className="flex flex-wrap gap-3">
 
-          {/* Statut */}
           <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
             className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:border-blue-900">
             <option value="all">Tous les statuts</option>
@@ -375,7 +366,6 @@ export default function Sales() {
             <option value="crédit">Crédit</option>
           </select>
 
-          {/* Type paiement */}
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)}
             className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:border-blue-900">
             <option value="all">Tous les types</option>
@@ -383,7 +373,6 @@ export default function Sales() {
             <option value="credit">Crédit</option>
           </select>
 
-          {/* Période */}
           <div className="flex gap-2">
             {[
               { value: 'all',   label: 'Tout'          },
@@ -401,12 +390,10 @@ export default function Sales() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <Table columns={columns} data={filteredSales} loading={loading} emptyMessage="Aucune vente enregistrée" />
       </div>
 
-      {/* Modal Nouvelle Vente */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Nouvelle vente" size="xl">
         <div className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
@@ -467,7 +454,6 @@ export default function Sales() {
             </div>
           </div>
 
-          {/* Ajouter article */}
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
             <p className="text-sm font-semibold text-blue-900 mb-3">➕ Ajouter un article</p>
             <div className="grid grid-cols-4 gap-3">
@@ -501,7 +487,6 @@ export default function Sales() {
             </Button>
           </div>
 
-          {/* Liste articles */}
           {form.items.length > 0 && (
             <div className="rounded-xl border border-gray-200 overflow-hidden">
               <table className="w-full text-sm">
@@ -532,7 +517,6 @@ export default function Sales() {
             </div>
           )}
 
-          {/* Totaux */}
           {form.items.length > 0 && (
             <div className="bg-blue-50 rounded-xl p-4 space-y-2">
               <div className="flex justify-between text-sm">
@@ -572,12 +556,10 @@ export default function Sales() {
         </div>
       </Modal>
 
-      {/* Modal Modifier */}
       <Modal isOpen={editModal} onClose={() => setEditModal(false)}
         title={`Modifier — ${selected?.saleNumber}`} size="sm">
         <div className="space-y-4">
 
-          {/* Info vente */}
           <div className="bg-gray-50 rounded-xl p-3 text-sm space-y-1">
             <div className="flex justify-between">
               <span className="text-gray-500">Client</span>
@@ -589,7 +571,6 @@ export default function Sales() {
             </div>
           </div>
 
-          {/* Montant payé */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Montant payé (GNF)</label>
             <input type="number" value={editForm.amountPaid}
@@ -598,7 +579,6 @@ export default function Sales() {
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
           </div>
 
-          {/* Remise */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Remise (GNF)</label>
             <input type="number" value={editForm.discount}
@@ -606,7 +586,6 @@ export default function Sales() {
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
           </div>
 
-          {/* Statut */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Statut</label>
             <select value={editForm.status}
@@ -627,7 +606,6 @@ export default function Sales() {
         </div>
       </Modal>
 
-      {/* Modal Détail */}
       <Modal isOpen={detailModal} onClose={() => setDetailModal(false)}
         title={`Détail — ${selected?.saleNumber}`} size="lg">
         {selected && (
@@ -681,7 +659,6 @@ export default function Sales() {
         )}
       </Modal>
 
-      {/* Modal Supprimer (admin only) */}
       {isAdmin && (
         <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer la suppression" size="sm">
           <div className="space-y-3">
@@ -702,7 +679,6 @@ export default function Sales() {
         </Modal>
       )}
 
-      {/* Modal Succès */}
       <Modal isOpen={successModal} onClose={() => setSuccessModal(false)} title="Vente enregistrée !" size="sm">
         <div className="text-center space-y-5">
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">

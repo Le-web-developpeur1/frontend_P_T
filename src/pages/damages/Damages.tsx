@@ -173,7 +173,6 @@ export default function Damages() {
   return (
     <div className="space-y-5">
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-blue-900">Avaries</h1>
@@ -184,7 +183,6 @@ export default function Damages() {
         </Button>
       </div>
 
-      {/* Stats */}
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
@@ -208,23 +206,19 @@ export default function Damages() {
         </div>
       )}
 
-      {/* Recherche */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
         <input type="text" placeholder="Rechercher une avarie..."
           value={search} onChange={(e) => setSearch(e.target.value)}
           className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <Table columns={columns} data={filtered} loading={loading} emptyMessage="Aucune avarie déclarée" />
       </div>
 
-      {/* Modal Déclarer */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Déclarer une avarie" size="md">
         <div className="space-y-4">
 
-          {/* Produit */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">
               Produit <span className="text-red-500">*</span>
@@ -240,7 +234,6 @@ export default function Damages() {
             </select>
           </div>
 
-          {/* Stock actuel */}
           {selectedProduct && (
             <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200 text-sm">
               <p className="font-semibold text-yellow-800">Stock actuel de {selectedProduct.name}</p>
@@ -251,7 +244,6 @@ export default function Damages() {
             </div>
           )}
 
-          {/* Raison */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">
               Raison <span className="text-red-500">*</span>
@@ -266,7 +258,6 @@ export default function Damages() {
             </select>
           </div>
 
-          {/* Quantités */}
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-gray-700">Quantité (cartons)</label>
@@ -282,7 +273,6 @@ export default function Damages() {
             </div>
           </div>
 
-          {/* Perte estimée */}
           {selectedProduct && (Number(form.quantityCartons) > 0 || Number(form.quantityKg) > 0) && (
             <div className="bg-red-50 rounded-lg p-3 border border-red-200 text-sm">
               <p className="text-red-700 font-semibold">
@@ -294,7 +284,6 @@ export default function Damages() {
             </div>
           )}
 
-          {/* Note */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Note (optionnel)</label>
             <textarea name="note" value={form.note} onChange={handleChange} rows={3}
@@ -311,7 +300,6 @@ export default function Damages() {
         </div>
       </Modal>
 
-      {/* Modal Supprimer */}
       <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer" size="sm">
         <p className="text-gray-600">
           Supprimer l'avarie de <strong>{selected?.productName}</strong> ?

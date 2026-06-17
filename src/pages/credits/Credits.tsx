@@ -59,7 +59,6 @@ export default function Credits() {
   const fetchClients = async () => {
     try {
       const res = await getClients();
-      // On filtre uniquement les clients qui ont une dette
       setClients(res.data.filter((c: Client) => c.currentDebt > 0 || c.creditLimit > 0));
     } catch { toast.error('Erreur chargement'); }
     finally { setLoading(false); }
@@ -96,7 +95,6 @@ export default function Credits() {
       toast.success('Paiement enregistré !');
       setPayModal(false);
       fetchClients();
-      // Refresh le détail si ouvert
       if (detailModal && selected) {
         const res = await getClientCredits(selected._id);
         setCreditData(res.data);
@@ -136,7 +134,6 @@ export default function Credits() {
     finally { setDownloading(false); }
   };
 
-  // Stats globales
   const totalDebt    = clients.reduce((sum: number, c: Client) => sum + c.currentDebt, 0);
   const blockedCount = clients.filter((c: Client) => c.isBlocked).length;
 
@@ -217,7 +214,6 @@ export default function Credits() {
   return (
     <div className="space-y-5">
 
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-blue-900">Gestion des Crédits</h1>
@@ -225,7 +221,6 @@ export default function Credits() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { icon: FiUsers,        label: 'Clients créditeurs', value: clients.length,                      color: 'text-blue-600',   bg: 'bg-blue-50'   },
@@ -246,19 +241,16 @@ export default function Credits() {
         ))}
       </div>
 
-      {/* Recherche */}
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
         <input type="text" placeholder="Rechercher un client..."
           value={search} onChange={(e) => setSearch(e.target.value)}
           className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <Table columns={columns} data={filtered} loading={loading} emptyMessage="Aucun client créditeur" />
       </div>
 
-      {/* Modal Détail */}
       <Modal isOpen={detailModal} onClose={() => setDetailModal(false)}
         title={`Relevé de compte — ${selected?.name}`} size="xl">
         {!creditData ? (
@@ -268,7 +260,6 @@ export default function Credits() {
         ) : (
           <div className="space-y-5">
 
-            {/* Infos client */}
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-gray-50 rounded-xl p-4 space-y-2">
                 <p className="text-xs font-semibold text-gray-500 uppercase">Informations client</p>
@@ -293,7 +284,6 @@ export default function Credits() {
               </div>
             </div>
 
-            {/* Blocage */}
             {creditData.client.isBlocked && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2">
                 <FiAlertTriangle className="text-red-500 flex-shrink-0" />
@@ -303,7 +293,6 @@ export default function Credits() {
               </div>
             )}
 
-            {/* Tableau ventes */}
             <div>
               <p className="text-sm font-semibold text-gray-700 mb-3">
                 Historique des achats à crédit ({creditData.sales.length})
@@ -352,7 +341,6 @@ export default function Credits() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex gap-3 justify-end pt-2">
               {creditData.client.currentDebt > 0 && (
                 <Button variant="success" onClick={() => { setDetailModal(false); selected && openPay(selected); }}>
@@ -370,7 +358,6 @@ export default function Credits() {
         )}
       </Modal>
 
-      {/* Modal Paiement */}
       <Modal isOpen={payModal} onClose={() => setPayModal(false)}
         title={`Enregistrer un paiement — ${selected?.name}`} size="sm">
         <div className="space-y-4">

@@ -172,7 +172,6 @@ export default function Suppliers() {
         <Table columns={columns} data={filtered} loading={loading} emptyMessage="Aucun fournisseur trouvé" />
       </div>
 
-      {/* Modal Créer/Modifier */}
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}
         title={selected ? 'Modifier le fournisseur' : 'Nouveau fournisseur'}>
         <div className="space-y-4">
@@ -188,7 +187,6 @@ export default function Suppliers() {
         </div>
       </Modal>
 
-      {/* Modal Achat */}
       <Modal isOpen={purchaseModal} onClose={() => setPurchaseModal(false)}
         title={`Enregistrer un achat — ${selected?.name}`} size="sm">
         <Input label="Montant de l'achat (GNF)" type="number" value={amount}
@@ -199,7 +197,6 @@ export default function Suppliers() {
         </div>
       </Modal>
 
-      {/* Modal Versement */}
       <Modal isOpen={payModal} onClose={() => setPayModal(false)}
         title={`Versement — ${selected?.name}`} size="sm">
         <div className="space-y-4">
@@ -216,7 +213,6 @@ export default function Suppliers() {
         </div>
       </Modal>
 
-      {/* Modal Supprimer */}
       <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer" size="sm">
         <p className="text-gray-600">Désactiver <strong>{selected?.name}</strong> ?</p>
         <div className="flex justify-end gap-3 mt-6">

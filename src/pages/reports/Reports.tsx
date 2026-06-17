@@ -65,7 +65,6 @@ export default function Reports() {
         <p className="text-gray-500 text-sm">Consultez et exportez vos rapports</p>
       </div>
 
-      {/* Tabs */}
       <div className="bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100 flex gap-1">
         {tabs.map(tab => (
           <button key={tab.id}
@@ -77,7 +76,6 @@ export default function Reports() {
         ))}
       </div>
 
-      {/* Filtres */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
         <div className="flex items-center gap-4 flex-wrap">
           {activeTab === 'daily' && (
@@ -117,11 +115,9 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Résultats */}
       {data && (
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-5">
 
-          {/* Daily */}
           {activeTab === 'daily' && (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -173,7 +169,6 @@ export default function Reports() {
             </>
           )}
 
-          {/* Monthly */}
           {activeTab === 'monthly' && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
@@ -190,7 +185,6 @@ export default function Reports() {
             </div>
           )}
 
-          {/* Stock */}
           {activeTab === 'stock' && (
             <div className="overflow-x-auto rounded-xl border border-gray-200">
               <table className="w-full text-sm">
@@ -221,7 +215,6 @@ export default function Reports() {
             </div>
           )}
 
-          {/* Dettes */}
           {activeTab === 'debts' && (
             <>
               <div className="bg-red-50 rounded-xl p-4 flex justify-between items-center">
@@ -255,7 +248,6 @@ export default function Reports() {
             </>
           )}
 
-          {/* Fournisseurs */}
           {activeTab === 'suppliers' && (
             <>
               <div className="bg-yellow-50 rounded-xl p-4 flex justify-between items-center">

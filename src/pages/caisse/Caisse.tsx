@@ -42,7 +42,6 @@ export default function Caisse() {
       const res = await getCaisseReport();
       setData(res.data);
     } catch {
-      console.error('Erreur chargement caisse');
     } finally {
       setLoading(false);
     }
@@ -64,16 +63,13 @@ export default function Caisse() {
   return (
     <div className="space-y-6">
 
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-blue-900">Caisse</h1>
         <p className="text-gray-500 text-sm mt-1">Vue globale de la caisse depuis le début</p>
       </div>
 
-      {/* 4 cartes séparées */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        {/* Solde en caisse */}
         <div className="bg-gradient-to-br from-[#1A2B5F] to-[#0f1a3a] rounded-2xl p-5 text-white">
           <div className="flex items-center justify-between mb-3">
             <p className="text-white/60 text-xs font-medium">SOLDE EN CAISSE</p>
@@ -87,7 +83,6 @@ export default function Caisse() {
           <p className="text-white/40 text-xs mt-1">Encaissé — Dépenses</p>
         </div>
 
-        {/* Total encaissé */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <p className="text-gray-500 text-xs font-medium">TOTAL ENCAISSÉ</p>
@@ -101,7 +96,6 @@ export default function Caisse() {
           <p className="text-gray-400 text-xs mt-1">Depuis le début</p>
         </div>
 
-        {/* Total dépenses */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <p className="text-gray-500 text-xs font-medium">TOTAL DÉPENSES</p>
@@ -115,7 +109,6 @@ export default function Caisse() {
           <p className="text-gray-400 text-xs mt-1">Depuis le début</p>
         </div>
 
-        {/* Transactions */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <p className="text-gray-500 text-xs font-medium">TRANSACTIONS</p>
@@ -130,10 +123,8 @@ export default function Caisse() {
         </div>
       </div>
 
-      {/* Stats par période */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-        {/* Aujourd'hui */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -164,7 +155,6 @@ export default function Caisse() {
           </div>
         </div>
 
-        {/* Ce mois */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
@@ -198,7 +188,6 @@ export default function Caisse() {
         </div>
       </div>
 
-      {/* Répartition comptant / crédit */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center gap-3 mb-3">

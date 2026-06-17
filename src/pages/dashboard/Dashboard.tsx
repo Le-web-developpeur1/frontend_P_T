@@ -95,7 +95,6 @@ export default function Dashboard() {
         setLowStock(s.data);
         setDebts(db.data);
       } catch (err) {
-        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -120,7 +119,6 @@ export default function Dashboard() {
   return (
     <div className="space-y-5">
 
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-blue-900">Tableau de bord</h1>
         <p className="text-gray-500 text-sm mt-1">
@@ -128,7 +126,6 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Stats du jour */}
       <div>
         <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Aujourd'hui</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -163,10 +160,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Graphique + Stats mois */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        {/* Graphique */}
         <div className="lg:col-span-2 bg-white rounded-xl p-5 shadow-sm border border-gray-200">
           <h2 className="text-base font-bold text-blue-900 mb-4">
             Résumé du mois — {new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
@@ -182,7 +177,6 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Stats mois */}
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
           <h2 className="text-base font-bold text-blue-900 mb-4">Ce mois</h2>
           <div className="space-y-3">
@@ -201,10 +195,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Alertes stock + Dettes */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-        {/* Alertes stock */}
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-blue-900 flex items-center gap-2">
@@ -232,7 +224,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Dettes clients */}
         <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-bold text-blue-900 flex items-center gap-2">

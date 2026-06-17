@@ -29,7 +29,6 @@ export default function Invoices() {
   const canDelete = user?.role === 'admin' || user?.role === 'gestionnaire';
 
 
-  // Filtres
   const [search, setSearch]           = useState<string>('');
   const [period, setPeriod]           = useState<PeriodFilter>('all');
 
@@ -190,7 +189,6 @@ export default function Invoices() {
   return (
     <div className="space-y-5">
 
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-blue-900">Factures</h1>
         <p className="text-gray-500 text-sm mt-1">
@@ -198,10 +196,8 @@ export default function Invoices() {
         </p>
       </div>
 
-      {/* Barre de recherche + filtres */}
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200 space-y-3">
 
-        {/* Recherche */}
         <div className="relative">
           <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input
@@ -219,7 +215,6 @@ export default function Invoices() {
           )}
         </div>
 
-        {/* Filtres période */}
         <div className="flex gap-2 flex-wrap">
           {(Object.keys(periodLabels) as PeriodFilter[]).map(p => (
             <button key={p} onClick={() => setPeriod(p)}
@@ -234,7 +229,6 @@ export default function Invoices() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         <Table
           columns={columns}
@@ -248,7 +242,6 @@ export default function Invoices() {
         />
       </div>
 
-      {/* Modal Supprimer */}
       <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer" size="sm">
         <p className="text-gray-600">
           Supprimer la facture <strong>{selected?.invoiceNumber}</strong> ?

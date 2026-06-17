@@ -187,7 +187,7 @@ export default function Users() {
             <select name="role" value={form.role} onChange={handleChange}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
               <option value="caissier">Caissier</option>
-              <option value="gestionnaire">Gestionnaire</option>
+              {/* <option value="gestionnaire">Gestionnaire</option> */}
               <option value="admin">Administrateur</option>
             </select>
           </div>

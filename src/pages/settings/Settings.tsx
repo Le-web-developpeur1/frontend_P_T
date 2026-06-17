@@ -56,12 +56,12 @@ export default function Settings() {
     notifications: { lowStock: true, newSale: true, clientBlocked: true }
   });
 
-  const [logoFile, setLogoFile]         = useState<File | null>(null);
-  const [logoPreview, setLogoPreview]   = useState<string | null>(null);
-  const [savingSys, setSavingSys]       = useState<boolean>(false);
-  const [savingUser, setSavingUser]     = useState<boolean>(false);
+  const [logoFile, setLogoFile]           = useState<File | null>(null);
+  const [logoPreview, setLogoPreview]     = useState<string | null>(null);
+  const [savingSys, setSavingSys]         = useState<boolean>(false);
+  const [savingUser, setSavingUser]       = useState<boolean>(false);
   const [uploadingLogo, setUploadingLogo] = useState<boolean>(false);
-  const [activeTab, setActiveTab]       = useState<string>(isAdmin ? 'system' : 'user');
+  const [activeTab, setActiveTab]         = useState<string>(isAdmin ? 'system' : 'user');
 
   useEffect(() => {
     getSystemConfig().then(res => {
