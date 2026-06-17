@@ -6,6 +6,13 @@ import toast from 'react-hot-toast';
 import { getNotifications, markAsRead, markAllAsRead, deleteNotification } from '../../api/notificationApi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
+
+interface NavbarProps {
+  onToggle: () => void;
+  isOpen: boolean;
+  isMobile: boolean;
+}
+
 interface NotificationItem {
   _id: string;
   type: string;
@@ -22,7 +29,7 @@ const typeIcons: Record<string, string> = {
   clientBlocked: '🔒',
 };
 
-export default function Navbar({ onToggle, isOpen }: { onToggle: () => void; isOpen: boolean }) {
+export default function Navbar({ onToggle, isOpen, isMobile  }: NavbarProps) {
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
 
@@ -106,7 +113,7 @@ export default function Navbar({ onToggle, isOpen }: { onToggle: () => void; isO
   return (
     <header style={{
       position: 'fixed', top: 0, right: 0, zIndex: 30,
-      left: isOpen ? '220px' : '64px',
+      left: isMobile ? 0 : (isOpen ? '220px' : '64px'),
       background: '#fff', borderBottom: '1px solid #e5e7eb',
       height: '64px', transition: 'left 0.3s ease',
       boxShadow: '0 1px 8px rgba(0,0,0,0.06)'
@@ -244,7 +251,7 @@ export default function Navbar({ onToggle, isOpen }: { onToggle: () => void; isO
 
           {/* User */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ textAlign: 'right' }}>
+            <div style={{ textAlign: 'right', display: isMobile ? 'none' : 'block' }}>
               <p style={{ fontSize: '13px', fontWeight: 700, color: '#1A2B5F', margin: 0 }}>{user?.name}</p>
               <p style={{ fontSize: '11px', color: '#9ca3af', margin: 0 }}>{roleLabel[user?.role || ''] || user?.role}</p>
             </div>
