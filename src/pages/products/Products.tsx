@@ -65,8 +65,18 @@ export default function Products() {
   useEffect(() => { fetchProducts(); }, []);
   useAutoRefresh(fetchProducts, 30000);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => 
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>  {
+    const { name, value } = e.target;
+    const newForm = { ...form, [name]: value };
+
+    if (name === "stockCartons" || name === "kgPerCarton") {
+      const cartons = Number(name === "stockCartons" ? value : form.stockCartons);
+      const kgPerCarton = Number(name === "kgPerCarton" ? value : form.kgPerCarton);
+      newForm.stockKg = cartons * kgPerCarton;
+    }
+    
+    setForm(newForm);
+  };
     
   const handleStockChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => 
     setStockForm({ ...stockForm, [e.target.name]: e.target.value });
@@ -239,7 +249,7 @@ export default function Products() {
           <Input label="Catégorie" name="category" value={form.category} onChange={handleChange} />
           <Input label="Kg par carton" name="kgPerCarton" type="number" value={form.kgPerCarton} onChange={handleChange} required />
           <Input label="Stock initial (cartons)" name="stockCartons" type="number" value={form.stockCartons} onChange={handleChange} />
-          <Input label="Stock initial (kg)" name="stockKg" type="number" value={form.stockKg} onChange={handleChange} />
+          <Input label="Stock initial (kg) - calculé automatiquement" name="stockKg" type="number" value={form.stockKg} disabled className='bg-gray-100' />
           <Input label="Prix par carton (GNF)" name="pricePerCarton" type="number" value={form.pricePerCarton} onChange={handleChange} required />
           <Input label="Prix par kg (GNF)" name="pricePerKg" type="number" value={form.pricePerKg} onChange={handleChange} required />
           <Input label="Seuil d'alerte (cartons)" name="alertThreshold" type="number" value={form.alertThreshold} onChange={handleChange} />

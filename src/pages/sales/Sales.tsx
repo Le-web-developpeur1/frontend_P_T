@@ -133,6 +133,7 @@ export default function Sales() {
 
   const handleSubmit = async () => {
     if (!form.items.length) { toast.error('Ajoutez au moins un article'); return; }
+    console.log('Items envoyés:', form.items); // ← ajoute ça
     setSaving(true);
     try {
       const res = await createSale({
