@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { getUsers, createUser, updateUser, toggleUserStatus  } from '../../api/authAPI'; 
+import { getUsers, createUser, updateUser, toggleUserStatus, deleteUser   } from '../../api/authAPI'; 
 import Table from '../../components/common/Table';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiPower } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiPower, FiTrash2, FiAlertTriangle  } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 interface User {
@@ -34,6 +34,10 @@ export default function Users() {
   const [selected, setSelected] = useState<User | null>(null);
   const [form, setForm] = useState<UserForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<boolean>(false);
+  const [userToDelete, setUserToDelete] = useState<any>(null);
+
+
 
   const fetchUsers = async () => {
     try {
@@ -81,6 +85,24 @@ export default function Users() {
     } catch { toast.error('Erreur'); }
   };
 
+  const openDelete = (u: any) => {
+    setUserToDelete(u);
+    setDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    setSaving(true);
+    try {
+      await deleteUser(userToDelete._id);
+      toast.success('Utilisateur supprimé !');
+      setDeleteModal(false);
+      fetchUsers();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erreur');
+    } finally {
+      setSaving(false);
+    }
+  };
   const roleLabel: Record<User['role'], string> = { 
     admin: 'Administrateur', 
     gestionnaire: 'Gestionnaire', 
@@ -127,6 +149,11 @@ export default function Users() {
           title={u.isActive ? 'Désactiver' : 'Activer'}>
           <FiPower size={15} />
         </button>
+        <button onClick={() => openDelete(u)}
+          className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+          title="Supprimer définitivement">
+          <FiTrash2 size={15} />
+        </button>
       </div>
     )},
   ];
@@ -169,6 +196,25 @@ export default function Users() {
           <Button variant="ghost" onClick={() => setModalOpen(false)}>Annuler</Button>
           <Button variant="primary" onClick={handleSubmit} loading={saving}>
             {selected ? 'Mettre à jour' : 'Créer'}
+          </Button>
+        </div>
+      </Modal>
+      <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer la suppression" size="sm">
+        <div className="space-y-3">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+            <FiAlertTriangle className="text-red-500 flex-shrink-0 mt-0.5" size={16} />
+            <div className="text-sm text-red-700">
+              <p className="font-semibold">Cette action est irréversible !</p>
+              <p className="mt-1">
+                Le compte de <strong>{userToDelete?.name}</strong> sera supprimé définitivement.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="ghost" onClick={() => setDeleteModal(false)}>Annuler</Button>
+          <Button variant="danger" onClick={handleDelete} loading={saving}>
+            Supprimer définitivement
           </Button>
         </div>
       </Modal>

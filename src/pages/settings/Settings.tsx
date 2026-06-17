@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
+import { updatePassword } from '../../api/authAPI';
 import { getSystemConfig, updateSystemConfig, uploadLogo, getSettings, updateSettings } from '../../api/systemAPI';
 import { useAuth } from '../../context/AuthContext';
 import { useSystem } from '../../context/SystemContext';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import toast from 'react-hot-toast';
-import { FiUpload, FiSave } from 'react-icons/fi';
-
-const API_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:4000';
+import { FiUpload, FiSave, FiLock  } from 'react-icons/fi';
 
 interface SysForm {
   establishmentName: string;
@@ -47,6 +46,11 @@ export default function Settings() {
     invoiceFooter: '', invoiceTagline: '', tvaRate: 0, currency: 'GNF'
   });
 
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '', newPassword: '', confirmPassword: ''
+  });
+  const [savingPassword, setSavingPassword] = useState<boolean>(false);
+
   const [userForm, setUserForm] = useState<UserForm>({
     theme: 'light', language: 'fr', defaultPaymentType: 'comptant', itemsPerPage: 20,
     notifications: { lowStock: true, newSale: true, clientBlocked: true }
@@ -62,7 +66,6 @@ export default function Settings() {
   useEffect(() => {
     getSystemConfig().then(res => {
       setSysForm(res.data);
-      // ← URL dynamique ici
       if (res.data.logo) setLogoPreview(res.data.logo);
     });
     getSettings().then(res => setUserForm(res.data)).catch(() => {});
@@ -78,7 +81,6 @@ export default function Settings() {
     const file = e.target.files?.[0];
     if (file) {
       setLogoFile(file);
-      // Blob URL pour la preview locale — pas besoin d'API_URL
       setLogoPreview(URL.createObjectURL(file));
     }
   };
@@ -117,6 +119,34 @@ export default function Settings() {
     finally { setSavingUser(false); }
   };
 
+  const handleChangePassword = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword) {
+      toast.error('Remplissez tous les champs');
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      toast.error('Le nouveau mot de passe doit contenir au moins 6 caractères');
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('Les mots de passe ne correspondent pas');
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      await updatePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      });
+      toast.success('Mot de passe mis à jour avec succès !');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erreur lors de la modification');
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div>
@@ -124,7 +154,6 @@ export default function Settings() {
         <p className="text-gray-500 text-sm">Configurez votre application</p>
       </div>
 
-      {/* Tabs */}
       <div className="bg-white rounded-2xl p-1.5 shadow-sm border border-gray-100 flex gap-1 w-fit">
         {isAdmin && (
           <button onClick={() => setActiveTab('system')}
@@ -140,11 +169,9 @@ export default function Settings() {
         </button>
       </div>
 
-      {/* Système (admin only) */}
       {activeTab === 'system' && isAdmin && (
         <div className="space-y-5">
 
-          {/* Logo */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <h2 className="text-base font-bold text-blue-900 mb-4">Logo de l'établissement</h2>
             <div className="flex items-center gap-6">
@@ -167,7 +194,6 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Infos établissement */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <h2 className="text-base font-bold text-blue-900 mb-4">Informations de l'établissement</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -182,7 +208,6 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Facture */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <h2 className="text-base font-bold text-blue-900 mb-4">Configuration des factures</h2>
             <div className="grid grid-cols-2 gap-4">
@@ -200,10 +225,9 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Préférences utilisateur */}
       {activeTab === 'user' && (
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-5">
-          <h2 className="text-base font-bold text-blue-900">Mes préférences</h2>
+          {/* <h2 className="text-base font-bold text-blue-900">Mes préférences</h2>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-gray-700">Thème</label>
@@ -231,9 +255,8 @@ export default function Settings() {
             </div>
             <Input label="Articles par page" name="itemsPerPage" type="number"
               value={userForm.itemsPerPage} onChange={(e) => setUserForm({ ...userForm, itemsPerPage: Number(e.target.value) })} />
-          </div>
+          </div> */}
 
-          {/* Notifications */}
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-3">Notifications</p>
             <div className="space-y-2">
@@ -253,6 +276,37 @@ export default function Settings() {
                   <span className="text-sm text-gray-700">{label}</span>
                 </label>
               ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4 mt-5">
+            <h2 className="text-base font-bold text-blue-900 flex items-center gap-2">
+              <FiLock size={18} /> Changer mon mot de passe
+            </h2>
+            <div className="grid grid-cols-1 gap-4 max-w-md">
+              <Input
+                label="Mot de passe actuel"
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+              />
+              <Input
+                label="Nouveau mot de passe"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+              />
+              <Input
+                label="Confirmer le nouveau mot de passe"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+              />
+            </div>
+            <div className="flex justify-end">
+              <Button onClick={handleChangePassword} variant="primary" loading={savingPassword}>
+                <FiLock size={16} /> Modifier le mot de passe
+              </Button>
             </div>
           </div>
 

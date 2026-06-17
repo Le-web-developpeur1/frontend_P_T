@@ -8,3 +8,4 @@ export const getUsers = () => api.get('/auth/users');
 export const createUser = (data) => api.post('/auth/register', data);
 export const updateUser = (id, data) => api.put(`/auth/users/${id}`, data);
 export const toggleUserStatus = (id) => api.put(`/auth/users/${id}/toggle`);
+export const deleteUser = (id) => api.delete(`/auth/users/${id}`);

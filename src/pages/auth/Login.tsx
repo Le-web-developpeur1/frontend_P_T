@@ -48,7 +48,7 @@ export default function Login() {
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-2xl mb-4 p-2">
             <div className="w-full h-full bg-gradient-to-br from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center">
-              <span className="text-white text-2xl">🐟</span>
+              <img src="/tatalogo.png" alt="Logo Poissonerie Tata" />
             </div>
           </div>
           
@@ -62,11 +62,8 @@ export default function Login() {
 
         {/* Login Form */}
         <div className="bg-[#3d5266]/40 backdrop-blur-sm rounded-xl border border-white/10 p-6 shadow-2xl">
-          
-          <div className="flex items-center gap-2 mb-4">
-            <FiLogIn className="text-yellow-400" size={18} />
-            <h2 className="text-white font-semibold">Connexion</h2>
-          </div>
+        
+            <h2 className="text-white font-semibold mb-5 text-center">Connexion</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             
