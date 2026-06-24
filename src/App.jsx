@@ -17,6 +17,7 @@ import Credits from './pages/credits/Credits';
 import Employees from './pages/employees/Employees';
 import Settings from './pages/settings/Settings';
 import Loader from './components/common/Loader';
+import Capital from './pages/capital/Capital';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="users" element={<Users />} />
         <Route path="damages" element={<Damages />} />
         <Route path="employees" element={<Employees />} />
+        <Route path='capital' element={<Capital />} />
         <Route path="settings" element={<Settings />} />
 
         {/* Toute route inconnue → login */}

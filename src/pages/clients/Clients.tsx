@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
-import { getClients, createClient, updateClient, deleteClient, recordClientPayment } from '../../api/clientAPI';
+import { getClients, createClient, updateClient, deleteClient, recordClientPayment, downloadPaymentReceipt } from '../../api/clientAPI';
 import { formatAmount } from '../../utils/formatAmount';
 import Table from '../../components/common/Table';
 import Modal from '../../components/common/Modal';
@@ -8,23 +8,26 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiDollarSign } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiDollarSign, FiDownload, FiPrinter } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 import { useAuth } from "../../context/AuthContext";
 
 const emptyForm = { name: '', phone: '', address: '', creditLimit: 0 };
 
 export default function Clients() {
-  const [clients, setClients]       = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [modalOpen, setModalOpen]   = useState(false);
-  const [payModal, setPayModal]     = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [selected, setSelected]     = useState(null);
-  const [form, setForm]             = useState(emptyForm);
-  const [payAmount, setPayAmount]   = useState('');
-  const [saving, setSaving]         = useState(false);
-  const [search, setSearch]         = useState('');
+  const [clients, setClients]               = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [modalOpen, setModalOpen]           = useState(false);
+  const [payModal, setPayModal]             = useState(false);
+  const [deleteModal, setDeleteModal]       = useState(false);
+  const [selected, setSelected]             = useState(null);
+  const [form, setForm]                     = useState(emptyForm);
+  const [payAmount, setPayAmount]           = useState('');
+  const [saving, setSaving]                 = useState(false);
+  const [search, setSearch]                 = useState('');
+  const [lastPayment, setLastPayment]       = useState<{ id: string; clientName: string } | null>(null);
+  const [receiptModal, setReceiptModal]     = useState<boolean>(false);
+  const [receiptLoading, setReceiptLoading] = useState<boolean>(false);
 
   const { user } = useAuth();
   const canDelete = user?.role === "admin" || user?.role === "gestionnaire";
@@ -43,10 +46,10 @@ export default function Clients() {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const openCreate = () => { setSelected(null); setForm(emptyForm); setModalOpen(true); };
-  const openEdit   = (c)  => { setSelected(c); setForm({ ...c }); setModalOpen(true); };
-  const openPay    = (c)  => { setSelected(c); setPayAmount(''); setPayModal(true); };
-  const openDelete = (c)  => { setSelected(c); setDeleteModal(true); };
+  const openCreate   = ()  => { setSelected(null); setForm(emptyForm); setModalOpen(true); };
+  const openEdit     = (c) => { setSelected(c); setForm({ ...c }); setModalOpen(true); };
+  const openPay      = (c) => { setSelected(c); setPayAmount(''); setPayModal(true); };
+  const openDelete   = (c) => { setSelected(c); setDeleteModal(true); };
 
   const handleSubmit = async () => {
     if (!form.name) { toast.error('Le nom est obligatoire'); return; }
@@ -62,11 +65,20 @@ export default function Clients() {
 
   const handlePayment = async () => {
     if (!payAmount || Number(payAmount) <= 0) { toast.error('Montant invalide'); return; }
+    if (Number(payAmount) > selected.currentDebt) {
+      toast.error('Le montant dépasse la dette actuelle'); return ;
+    }
     setSaving(true);
     try {
-      await recordClientPayment(selected._id, { amount: Number(payAmount) });
+      const res = await recordClientPayment(selected._id, { amount: Number(payAmount) });
       toast.success('Paiement enregistré !');
       setPayModal(false);
+
+      if (res.data.paymentId) {
+        setLastPayment({ id: res.data.paymentId, clientName: selected.name });
+        setReceiptModal(true);
+      }
+
       fetchClients();
     } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
@@ -81,6 +93,45 @@ export default function Clients() {
       fetchClients();
     } catch { toast.error('Erreur'); }
     finally { setSaving(false); }
+  };
+
+  //Fonction de téléchargement du reçu
+  const handleDownloadReceipt = async () => {
+    if (!lastPayment) return;
+    setReceiptLoading(true);
+    try {
+      const res = await downloadPaymentReceipt(lastPayment.id);
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a   = document.createElement('a');
+      a.href    = url;
+      a.download = `Recu-${lastPayment.clientName}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('Reçu téléchargé !');
+    } catch { toast.error('Erreur téléchargement reçu'); }
+    finally { setReceiptLoading(false); }
+  };
+  
+  //Fonction d'impression du reçu 
+  const handlePrintReceipt = async () => {
+    if (!lastPayment) return;
+    setReceiptLoading(true);
+    try {
+      const res  = await downloadPaymentReceipt(lastPayment.id);
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url  = window.URL.createObjectURL(blob);
+      const printWindow = window.open(url, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => { printWindow.focus(); printWindow.print(); };
+      } else {
+        const a = document.createElement('a');
+        a.href  = url;
+        a.download = `Recu-${lastPayment.clientName}.pdf`;
+        a.click();
+      }
+      window.URL.revokeObjectURL(url);
+    } catch { toast.error('Erreur impression reçu'); }
+    finally { setReceiptLoading(false); }
   };
 
   const filtered = clients.filter(c =>
@@ -187,6 +238,34 @@ export default function Clients() {
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="ghost" onClick={() => setDeleteModal(false)}>Annuler</Button>
           <Button variant="danger" onClick={handleDelete} loading={saving}>Supprimer</Button>
+        </div>
+      </Modal>
+
+      {/* Modal Reçu de paiement */}
+      <Modal isOpen={receiptModal} onClose={() => setReceiptModal(false)} title="Paiement enregistré !" size="sm">
+        <div className="text-center space-y-5">
+          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-gray-800 font-semibold">Paiement enregistré avec succès</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Le solde de <span className="font-bold text-blue-900">{lastPayment?.clientName}</span> a été mis à jour
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button variant="primary" onClick={handleDownloadReceipt} loading={receiptLoading} className="w-full">
+              <FiDownload size={16} /> Télécharger le reçu PDF
+            </Button>
+            <Button variant="ghost" onClick={handlePrintReceipt} loading={receiptLoading} className="w-full">
+              <FiPrinter size={16} /> Imprimer le reçu
+            </Button>
+            <Button variant="ghost" onClick={() => setReceiptModal(false)} className="w-full">
+              Fermer
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>

@@ -5,6 +5,7 @@ declare module '../../api/reportAPI' {
   export function getDailyReport(): Promise<any>;
   export function getMonthlyReport(): Promise<any>;
   export function getDebtReport(): Promise<any>;
+  export function getCapitalReport(): Promise<any>;
 }
 
 declare module '../../api/productAPI' {

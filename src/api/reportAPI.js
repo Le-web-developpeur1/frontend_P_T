@@ -5,6 +5,7 @@ export const getMonthlyReport = (params) => api.get('/reports/monthly', { params
 export const getStockReport = () => api.get('/reports/stock');
 export const getDebtReport = () => api.get('/reports/debts');
 export const getSupplierReport = () => api.get('/reports/suppliers');
+export const getCapitalReport = () => api.get('/reports/capital');
 export const exportReport = (type, format, params) =>
   api.get(`/reports/${type}/export`, { params: { format, ...params }, responseType: 'blob' });
 

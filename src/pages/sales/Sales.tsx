@@ -139,7 +139,7 @@ export default function Sales() {
         ...form,
         client:     form.useManualName ? undefined : (form.client || undefined),
         clientName: form.useManualName ? (form.clientManualName || 'Client comptant') : undefined,
-        amountPaid: form.paymentType === 'comptant' ? totalAmount : Number(form.amountPaid || 0),
+        amountPaid: form.paymentType === 'comptant' || form.paymentType === 'virement' ? totalAmount : Number(form.amountPaid || 0),
       });
       toast.success('Vente enregistrée !');
       setModalOpen(false);
@@ -293,7 +293,10 @@ export default function Sales() {
       </span>
     )},
     { header: 'Type',      render: (s: any) => (
-      <Badge label={s.paymentType} variant={s.paymentType === 'comptant' ? 'success' : 'warning'} />
+      <Badge 
+        label={s.paymentType === 'comptant' ? 'Comptant' : s.paymentType === 'virement' ? 'Virement' : 'Crédit'}
+        variant={s.paymentType === 'comptant' ? 'success' : s.paymentType === 'virement' ? 'info' : 'warning'}
+      />
     )},
     { header: 'Statut',    render: (s: any) => (
       <Badge label={s.status} variant={statusVariant[s.status] || 'default'} />
@@ -370,6 +373,7 @@ export default function Sales() {
             className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-medium focus:outline-none focus:border-blue-900">
             <option value="all">Tous les types</option>
             <option value="comptant">Comptant</option>
+            <option value="virement">Virement</option>
             <option value="credit">Crédit</option>
           </select>
 
@@ -446,6 +450,7 @@ export default function Sales() {
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900"
                 disabled={form.useManualName}>
                 <option value="comptant">Comptant</option>
+                <option value="virement">Virement bancaire</option>
                 {!form.useManualName && <option value="credit">Crédit</option>}
               </select>
               {form.useManualName && (

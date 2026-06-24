@@ -53,7 +53,7 @@ export default function Login() {
           </div>
           
           <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-            Poissonnerie TATA
+              S.A.D POISSON
           </h1>
           <p className="text-yellow-400 font-semibold text-xs">
             Système de Gestion ERP

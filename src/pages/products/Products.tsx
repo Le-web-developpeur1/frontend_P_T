@@ -18,6 +18,7 @@ interface ProductForm {
   kgPerCarton: number;
   pricePerCarton: number;
   pricePerKg: number;
+  purchasePricePerCarton
   alertThreshold: number;
 }
 
@@ -34,7 +35,7 @@ interface StockForm {
 
 const emptyForm: ProductForm = {
   name: '', category: '', stockCartons: 0, stockKg: 0,
-  kgPerCarton: 0, pricePerCarton: 0, pricePerKg: 0, alertThreshold: 5
+  kgPerCarton: 0, pricePerCarton: 0, pricePerKg: 0, alertThreshold: 5, purchasePricePerCarton: 0,
 };
 
 const emptyStockForm: StockForm = { type: 'entrée', quantityCartons: 0, quantityKg: 0, reason: 'achat' };
@@ -245,6 +246,7 @@ export default function Products() {
           <Input label="Catégorie" name="category" value={form.category} onChange={handleChange} />
           <Input label="Kg par carton" name="kgPerCarton" type="number" value={form.kgPerCarton} onChange={handleChange} required />
           <Input label="Stock initial (cartons)" name="stockCartons" type="number" value={form.stockCartons} onChange={handleChange} />
+          <Input label="Prix d'achat par carton (GNF)" name="purchasePricePerCarton" value={form.purchasePricePerCarton} onChange={handleChange} />
           <Input label="Stock initial (kg) - calculé automatiquement" name="stockKg" type="number" value={form.stockKg} disabled className='bg-gray-100' />
           <Input label="Prix par carton (GNF)" name="pricePerCarton" type="number" value={form.pricePerCarton} onChange={handleChange} required />
           <Input label="Prix par kg (GNF)" name="pricePerKg" type="number" value={form.pricePerKg} onChange={handleChange} required />
