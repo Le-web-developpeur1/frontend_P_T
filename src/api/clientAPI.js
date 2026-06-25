@@ -9,3 +9,5 @@ export const recordClientPayment    = (id, data) => api.post(`/clients/${id}/pay
 export const downloadPaymentReceipt = (paymentId) => api.get(`/clients/payments/${paymentId}/receipt`, { responseType: 'blob'});
 export const getClientCredits       = (id) => api.get(`/clients/${id}/credits`);
 export const downloadCreditPDF      = (id) => api.get(`/clients/${id}/credits/pdf`, { responseType: 'blob' });
+export const getClientHistory      = (id) => api.get(`/clients/${id}/history`);
+export const downloadClientReleve  = (id) => api.get(`/clients/${id}/releve/pdf`, { responseType: 'blob' });

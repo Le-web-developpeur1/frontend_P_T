@@ -36,6 +36,10 @@ declare module '../../api/clientAPI' {
   export function createClient(data: any): Promise<any>;
   export function updateClient(id: string, data: any): Promise<any>;
   export function deleteClient(id: string): Promise<any>;
+  export function recordClientPayment(id: string, data: any): Promise<any>;
+  export function downloadPaymentReceipt(paymentId: string): Promise<any>;
+  export function getClientHistory(id: string): Promise<any>;
+  export function downloadClientReleve(id: string): Promise<any>;
 }
 
 declare module '../../api/saleAPI' {

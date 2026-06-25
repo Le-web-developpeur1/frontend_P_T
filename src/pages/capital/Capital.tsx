@@ -20,7 +20,7 @@ interface CapitalData {
   capitalDisponible:     number;
   details: {
     totalVentesComptant:  number;
-    totalAcomptes:        number;
+    totalAcomptesInitiaux:        number;
     totalClientPayments:  number;
     valeurVentesAchat:    number;
     nbProduits:           number;
@@ -132,6 +132,8 @@ export default function Capital() {
     },
   ];
 
+  const totalVentes = data.caisse + data.banque + data.credits;
+
   return (
     <div className="space-y-6">
 
@@ -195,7 +197,7 @@ export default function Capital() {
               {formatAmount(data.capitalDisponible)} GNF
             </p>
             <p className="text-white/50 text-xs mt-2">
-                Stock final + Caisse + Banque + Crédits − Dépenses
+                Stock final + Caisse + Banque + Crédits
             </p>
           </div>
           <div className="text-right space-y-1">
@@ -211,9 +213,6 @@ export default function Capital() {
             <div className="text-white/70 text-xs">
               <span className="text-green-400">+</span> Crédits : {formatAmount(data.credits)} GNF
             </div>
-            <div className="text-white/70 text-xs">
-              <span className="text-red-400">−</span> Dépenses : {formatAmount(data.totalDepenses)} GNF
-            </div>
           </div>
         </div>
       </div>
@@ -227,7 +226,7 @@ export default function Capital() {
           <div className="space-y-3">
             {[
               { label: 'Ventes comptant',       value: data.details.totalVentesComptant  },
-              { label: 'Acomptes sur crédits',  value: data.details.totalAcomptes        },
+              { label: 'Acomptes sur crédits',  value: data.details.totalAcomptesInitiaux       },
               { label: 'Paiements de dettes',   value: data.details.totalClientPayments  },
               { label: 'Dépenses (déduites)',   value: -data.totalDepenses, negative: true },
             ].map(({ label, value, negative }) => (
@@ -253,7 +252,7 @@ export default function Capital() {
               { label: 'Nombre de produits actifs',    value: `${data.details.nbProduits} produits`  },
               { label: 'Valeur ventes (prix achat)', value: `${formatAmount(data.details.valeurVentesAchat)} GNF` },
               { label: 'Clients avec dettes actives',  value: `${data.details.nbClients} clients`    },
-              { label: 'Bénéfice estimé (CA − Capital)', value: `${formatAmount(data.chiffreAffairesEstime - data.capitalInitial)} GNF` },
+              { label: 'Bénéfice après ventes', value: `${formatAmount(totalVentes - data.details.valeurVentesAchat)} GNF` },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                 <span className="text-sm text-gray-600">{label}</span>
