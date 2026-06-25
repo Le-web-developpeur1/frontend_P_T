@@ -82,6 +82,8 @@ declare module '../../api/employeeAPI' {
   export function paySalary(id: string, data: any): Promise<any>;
   export function getSalaryStats(): Promise<any>;
   export function downloadSalarySlip(paymentId: string): Promise<any>;
+  export function giveAdvance(id: string, data: any): Promise<any>;
+  export function getAdvances(id: string): Promise<any>;
 }
 
 // Hooks

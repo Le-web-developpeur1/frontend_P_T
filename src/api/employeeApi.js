@@ -8,3 +8,5 @@ export const deleteEmployee     = (id) => api.delete(`/employees/${id}`);
 export const paySalary          = (id, data) => api.post(`/employees/${id}/pay`, data);
 export const getSalaryStats     = () => api.get('/employees/stats');
 export const downloadSalarySlip = (paymentId) => api.get(`/employees/payments/${paymentId}/pdf`, { responseType: 'blob' });
+export const giveAdvance  = (id, data) => api.post(`/employees/${id}/advance`, data);
+export const getAdvances  = (id) => api.get(`/employees/${id}/advances`);
