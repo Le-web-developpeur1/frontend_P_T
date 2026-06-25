@@ -20,6 +20,7 @@ interface SysForm {
   invoiceTagline: string;
   tvaRate: number;
   currency: string;
+  tauxFCFA: number;
   logo?: string;
 }
 
@@ -43,7 +44,7 @@ export default function Settings() {
   const [sysForm, setSysForm] = useState<SysForm>({
     establishmentName: '', establishmentSubtitle: '', description: '',
     address: '', phone1: '', phone2: '', email: '',
-    invoiceFooter: '', invoiceTagline: '', tvaRate: 0, currency: 'GNF'
+    invoiceFooter: '', invoiceTagline: '', tvaRate: 0, currency: 'GNF', tauxFCFA: 10
   });
 
   const [passwordForm, setPasswordForm] = useState({
@@ -71,8 +72,14 @@ export default function Settings() {
     getSettings().then(res => setUserForm(res.data)).catch(() => {});
   }, []);
 
-  const handleSysChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSysForm({ ...sysForm, [e.target.name]: e.target.value });
+  const handleSysChange = (e: React.ChangeEvent<HTMLInputElement>) =>{
+    const { name, value } = e.target;
+    const numericFields = ['tvaRate', 'tauxFCFA'];
+    setSysForm({ 
+      ...sysForm, 
+      [name]: numericFields.includes(name) ? Number(value) : value 
+    });
+  }
 
   const handleUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setUserForm({ ...userForm, [e.target.name]: e.target.value });
@@ -101,14 +108,16 @@ export default function Settings() {
   };
 
   const handleSaveSys = async () => {
-    setSavingSys(true);
-    try {
-      const res = await updateSystemConfig(sysForm);
-      updateConfig(res.data.config);
-      toast.success('Configuration mise à jour !');
-    } catch { toast.error('Erreur'); }
-    finally { setSavingSys(false); }
-  };
+  setSavingSys(true);
+  try {
+    // On exclut le logo car il est géré séparément via uploadLogo
+    const { logo, ...dataToSend } = sysForm;
+    const res = await updateSystemConfig(dataToSend);
+    updateConfig(res.data.config);
+    toast.success('Configuration mise à jour !');
+  } catch { toast.error('Erreur'); }
+  finally { setSavingSys(false); }
+};
 
   const handleSaveUser = async () => {
     setSavingUser(true);
@@ -214,6 +223,24 @@ export default function Settings() {
               <Input label="Pied de page" name="invoiceFooter"  value={sysForm.invoiceFooter}  onChange={handleSysChange} className="col-span-2" />
               <Input label="Tagline"      name="invoiceTagline" value={sysForm.invoiceTagline} onChange={handleSysChange} className="col-span-2" />
               <Input label="TVA par défaut (%)" name="tvaRate" type="number" value={sysForm.tvaRate} onChange={handleSysChange} />
+
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium text-gray-700">
+                  Taux de change FCFA → FG
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    label=""
+                    name="tauxFCFA"
+                    type="number"
+                    value={sysForm.tauxFCFA}
+                    onChange={handleSysChange}
+                  />
+                  <span className="text-sm text-gray-500 whitespace-nowrap">
+                    1 FCFA = {sysForm.tauxFCFA} FG
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
