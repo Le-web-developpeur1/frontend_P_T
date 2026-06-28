@@ -185,35 +185,53 @@ export default function Reports() {
             </div>
           )}
 
-          {activeTab === 'stock' && (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
-              <table className="w-full text-sm">
-                <thead className="bg-blue-900 text-white">
-                  <tr>
-                    {['Produit', 'Catégorie', 'Stock Cartons', 'Stock Kg', 'Prix/Carton', 'Prix/Kg', 'Statut'].map(h => (
-                      <th key={h} className="px-4 py-2 text-left">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.products?.map((p: any, i: number) => (
-                    <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                      <td className="px-4 py-2 font-semibold">{p.name}</td>
-                      <td className="px-4 py-2">{p.category}</td>
-                      <td className="px-4 py-2">{p.stockCartons}</td>
-                      <td className="px-4 py-2">{p.stockKg} kg</td>
-                      <td className="px-4 py-2">{formatAmount(p.pricePerCarton)} GNF</td>
-                      <td className="px-4 py-2">{formatAmount(p.pricePerKg)} GNF</td>
-                      <td className="px-4 py-2">
-                        <Badge label={p.stockCartons <= p.alertThreshold ? 'Stock bas' : 'OK'}
-                          variant={p.stockCartons <= p.alertThreshold ? 'warning' : 'success'} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+{activeTab === 'stock' && (
+  <>
+    {/* Valeurs du stock */}
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+      {[
+        // { label: 'Valeur stock (prix vente)',  value: `${formatAmount(data.valeurStockVente)} GNF`,  color: 'text-green-600' },
+        { label: 'Valeur stock (prix achat)',  value: `${formatAmount(data.valeurStockAchat)} GNF`,  color: 'text-blue-900'  },
+        { label: 'Produits en stock bas',      value: `${data.lowStock?.length || 0} produit(s)`,    color: 'text-red-600'   },
+      ].map(({ label, value, color }) => (
+        <div key={label} className="bg-gray-50 rounded-xl p-4">
+          <p className="text-xs text-gray-500">{label}</p>
+          <p className={`text-lg font-bold ${color}`}>{value}</p>
+        </div>
+      ))}
+    </div>
+
+    {/* Tableau produits */}
+    <div className="overflow-x-auto rounded-xl border border-gray-200">
+      <table className="w-full text-sm">
+        <thead className="bg-blue-900 text-white">
+          <tr>
+            {['Produit', 'Catégorie', 'Stock Cartons', 'Prix/Carton', 'Valeur stock (achat)', 'Statut'].map(h => (
+              <th key={h} className="px-4 py-2 text-left">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.products?.map((p: any, i: number) => (
+            <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+              <td className="px-4 py-2 font-semibold">{p.name}</td>
+              <td className="px-4 py-2">{p.category || '—'}</td>
+              <td className="px-4 py-2">{p.stockCartons}</td>
+              <td className="px-4 py-2">{formatAmount(p.purchasePricePerCarton)} GNF</td>
+              <td className="px-4 py-2 font-semibold text-blue-900">
+                {formatAmount(p.stockCartons * p.purchasePricePerCarton || 0)} GNF
+              </td>
+              <td className="px-4 py-2">
+                <Badge label={p.stockCartons <= p.alertThreshold ? 'Stock bas' : 'OK'}
+                  variant={p.stockCartons <= p.alertThreshold ? 'warning' : 'success'} />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </>
+)}
 
           {activeTab === 'debts' && (
             <>

@@ -53,6 +53,14 @@ declare module '../../api/supplierAPI' {
   export function createSupplier(data: any): Promise<any>;
   export function updateSupplier(id: string, data: any): Promise<any>;
   export function deleteSupplier(id: string): Promise<any>;
+  export function recordSupplierPayment(id: string, data: any): Promise<any>;
+  export function recordPurchase(id: string, data: any): Promise<any>;
+  export function getSupplierHistory(id: string): Promise<any>;
+}
+
+declare module '../../api/bankAPI' {
+  export function getBankReport(): Promise<any>;
+  export function transferToBanque(data: any): Promise<any>;
 }
 
 declare module '../../api/systemAPI' {

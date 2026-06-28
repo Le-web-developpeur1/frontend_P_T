@@ -3,7 +3,7 @@ import {
   FiGrid, FiPackage, FiUsers, FiTruck, FiShoppingCart,
   FiFileText, FiDollarSign, FiBarChart2, FiSettings,
   FiUserPlus, FiAlertOctagon, FiCreditCard, FiMonitor, FiBriefcase, 
-  FiX, FiPieChart,
+  FiX, FiPieChart, FiDatabase
 } from 'react-icons/fi';
 import { useSystem } from '../../context/SystemContext';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +12,7 @@ const allLinks = [
   { to: '/',          icon: FiGrid,         label: 'Dashboard',     roles: ['admin', 'gestionnaire']             },
   { to: '/capital',   icon: FiPieChart,     label: 'Capital',       roles: ['admin', 'gestionnaire']             },
   { to: '/caisse',    icon: FiMonitor,      label: 'Caisse',        roles: ['admin', 'gestionnaire', 'caissier'] },
+  { to: '/bank', icon: FiDatabase,          label: 'Banque',        roles: ['admin', 'gestionnaire']             },
   { to: '/sales',     icon: FiShoppingCart, label: 'Ventes',        roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/products',  icon: FiPackage,      label: 'Produits',      roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/clients',   icon: FiUsers,        label: 'Clients',       roles: ['admin', 'gestionnaire', 'caissier'] },
