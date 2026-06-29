@@ -56,7 +56,7 @@ export default function Login() {
               S.A.D POISSON
           </h1>
           <p className="text-yellow-400 font-semibold text-xs">
-            Système de Gestion ERP
+            Système complète de Gestion
           </p>
         </div>
 
