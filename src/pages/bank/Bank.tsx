@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getBankReport, transferToBanque } from '../../api/bankAPI';
 import { formatAmount, formatDate } from '../../utils/formatAmount';
+import { getBankReport, transferToBanque } from '../../api/bankAPI';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
