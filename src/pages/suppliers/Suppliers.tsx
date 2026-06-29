@@ -51,6 +51,7 @@ export default function Suppliers() {
   const [search, setSearch]               = useState<string>('');
   const [supplierDetail, setSupplierDetail] = useState<any>(null);
   const [detailLoading, setDetailLoading]   = useState<boolean>(false);
+  const [modePaiementVersement, setModePaiementVersement] = useState<string>('comptant');
 
   const fetchSuppliers = async () => {
     try {
@@ -86,7 +87,7 @@ export default function Suppliers() {
 
   const openCreate   = () => { setSelected(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit     = (s: Supplier) => { setSelected(s); setForm({ ...s }); setModalOpen(true); };
-  const openPay      = (s: Supplier) => { setSelected(s); setAmount(''); setNote(''); setPayModal(true); };
+  const openPay      = (s: Supplier) => { setSelected(s); setAmount(''); setNote(''); setPayModal(true); setModePaiementVersement('comptant') };
   const openDelete   = (s: Supplier) => { setSelected(s); setDeleteModal(true); };
 
   const openPurchase = (s: Supplier) => {
@@ -124,9 +125,17 @@ export default function Suppliers() {
   const handlePayment = async () => {
     if (!selected) return;
     if (!amount || Number(amount) <= 0) { toast.error('Montant invalide'); return; }
+    if (Number(amount) > selected.balance) {
+      toast.error(`Le montant ne peut pas dépasser ${formatAmount(selected.balance)} GNF`);
+      return;
+    }
     setSaving(true);
     try {
-      await recordSupplierPayment(selected._id, { amount: Number(amount), note });
+      await recordSupplierPayment(selected._id, { 
+        amount:        Number(amount), 
+        note,
+        modePaiement:  modePaiementVersement
+      });
       toast.success('Versement enregistré !');
       setPayModal(false);
       fetchSuppliers();
@@ -322,8 +331,8 @@ export default function Suppliers() {
               <label className="text-sm font-medium text-gray-700">Mode de paiement</label>
               <div className="flex gap-2">
                 {[
-                  { value: 'comptant', label: '💵 Comptant (Caisse)' },
-                  { value: 'virement', label: '🏦 Virement (Banque)' },
+                  { value: 'comptant', label: 'Comptant (Caisse)' },
+                  { value: 'virement', label: 'Virement (Banque)' },
                 ].map(({ value, label }) => (
                   <button key={value}
                     onClick={() => setModePaiement(value)}
@@ -399,11 +408,53 @@ export default function Suppliers() {
       <Modal isOpen={payModal} onClose={() => setPayModal(false)}
         title={`Versement — ${selected?.name}`} size="sm">
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
-            Solde restant : <strong className="text-red-600">{formatAmount(selected?.balance || 0)} GNF</strong>
-          </p>
-          <Input label="Montant versé (GNF)" type="number" value={amount}
-            onChange={(e) => setAmount(e.target.value)} placeholder="0" />
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+            <p className="text-sm text-gray-600">
+              Solde restant : <strong className="text-red-600">{formatAmount(selected?.balance || 0)} GNF</strong>
+            </p>
+          </div>
+
+          {/* Mode de paiement */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Mode de paiement</label>
+            <div className="flex gap-2">
+              {[
+                { value: 'comptant', label: 'Comptant (Caisse)' },
+                { value: 'virement', label: 'Virement (Banque)' },
+              ].map(({ value, label }) => (
+                <button key={value}
+                  onClick={() => setModePaiementVersement(value)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold border transition-colors ${
+                    modePaiementVersement === value
+                      ? 'bg-blue-900 text-white border-blue-900'
+                      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Montant avec validation */}
+          <div className="space-y-1">
+            <Input label="Montant versé (GNF)" type="number" value={amount}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                if (val > (selected?.balance || 0)) {
+                  toast.error(`Maximum : ${formatAmount(selected?.balance || 0)} GNF`);
+                  setAmount(String(selected?.balance || 0));
+                } else {
+                  setAmount(e.target.value);
+                }
+              }}
+              placeholder="0" />
+            <button
+              onClick={() => setAmount(String(selected?.balance || 0))}
+              className="text-xs text-blue-600 hover:underline">
+              Payer tout ({formatAmount(selected?.balance || 0)} GNF)
+            </button>
+          </div>
+
           <Input label="Note (optionnel)" value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
         <div className="flex justify-end gap-3 mt-6">

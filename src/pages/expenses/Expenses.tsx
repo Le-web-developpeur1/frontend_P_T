@@ -27,14 +27,30 @@ interface Expense extends ExpenseForm {
 type CategoryColor = 'info' | 'warning' | 'success' | 'default';
 
 const emptyForm: ExpenseForm = { title: '', category: 'autre', amount: '', date: '', note: '' };
+const categoryLabels: Record<string, string> = {
+  transport:            'Transport',
+  loyer:                'Loyer',
+  salaire:              'Salaire',
+  fourniture:           'Fourniture',
+  entretien:            'Entretien',
+  autre:                'Autre',
+  achat_fournisseur:    'Achat fournisseur',
+  virement_fournisseur: 'Virement fournisseur',
+  transfert_banque:     'Transfert → Banque',
+  transfert_caisse:     'Transfert → Caisse',
+};
 
 const categoryColors: Record<string, CategoryColor> = {
-  transport:   'info',
-  loyer:       'warning',
-  salaire:     'success',
-  fourniture:  'default',
-  entretien:   'info',
-  autre:       'default',
+  transport:            'info',
+  loyer:                'warning',
+  salaire:              'success',
+  fourniture:           'default',
+  entretien:            'info',
+  autre:                'default',
+  achat_fournisseur:    'warning',
+  virement_fournisseur: 'info',
+  transfert_banque:     'success',
+  transfert_caisse:     'success',
 };
 
 export default function Expenses() {
@@ -108,7 +124,9 @@ export default function Expenses() {
       </div>
     )},
     { header: 'Catégorie', render: (e: Expense) => (
-      <Badge label={e.category} variant={categoryColors[e.category] || 'default'} />
+      <Badge 
+        label={categoryLabels[e.category] || e.category} 
+        variant={categoryColors[e.category] || 'default'} />
     )},
     { header: 'Montant', render: (e: Expense) => (
       <span className="font-semibold text-red-600">{formatAmount(e.amount)} GNF</span>
