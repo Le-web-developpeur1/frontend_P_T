@@ -15,16 +15,13 @@ interface Product {
   name: string;
   category?: string;
   stockCartons: number;
-  stockKg: number;
   pricePerCarton: number;
-  pricePerKg: number;
 }
 
 interface DamageForm {
   product: string;
   reason: string;
   quantityCartons: number | string;
-  quantityKg: number | string;
   note: string;
 }
 
@@ -40,7 +37,6 @@ interface Damage {
   product: string | DamageProduct;
   reason: string;
   quantityCartons: number;
-  quantityKg: number;
   estimatedLoss: number;
   note: string;
   createdAt: string;
@@ -49,12 +45,11 @@ interface Damage {
 interface DamageStats {
   totalDamages: number;
   totalCartons: number;
-  totalKg: number;
   totalLoss: number;
 }
 
 const emptyForm: DamageForm = {
-  product: '', reason: 'périmé', quantityCartons: 0, quantityKg: 0, note: ''
+  product: '', reason: 'périmé', quantityCartons: 0, note: ''
 };
 
 const reasonVariant: Record<string, 'warning' | 'danger' | 'info' | 'default'> = {
@@ -95,15 +90,14 @@ export default function Damages() {
 
   const handleSubmit = async () => {
     if (!form.product) { toast.error('Sélectionnez un produit'); return; }
-    if (!Number(form.quantityCartons) && !Number(form.quantityKg)) {
-      toast.error('Indiquez au moins une quantité'); return;
+    if (!Number(form.quantityCartons)) {
+      toast.error('Indiquez une quantité'); return;
     }
     setSaving(true);
     try {
       await createDamage({
         ...form,
         quantityCartons: Number(form.quantityCartons),
-        quantityKg:      Number(form.quantityKg),
       });
       toast.success('Avarie déclarée !');
       setModalOpen(false);
@@ -148,10 +142,7 @@ export default function Damages() {
       <Badge label={d.reason} variant={reasonVariant[d.reason] || 'default'} />
     )},
     { header: 'Qté Cartons', render: (d: Damage) => (
-      <span className="text-sm">{d.quantityCartons > 0 ? `${d.quantityCartons} cartons` : '—'}</span>
-    )},
-    { header: 'Qté Kg', render: (d: Damage) => (
-      <span className="text-sm">{d.quantityKg > 0 ? `${d.quantityKg} kg` : '—'}</span>
+      <span className="text-sm">{d.quantityCartons} cartons</span>
     )},
     { header: 'Perte estimée', render: (d: Damage) => (
       <span className="font-semibold text-red-600">{formatAmount(d.estimatedLoss)} GNF</span>
@@ -184,12 +175,11 @@ export default function Damages() {
       </div>
 
       {stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { icon: FiAlertTriangle, label: 'Total déclarations', value: String(stats.totalDamages),                    color: 'text-yellow-600', bg: 'bg-yellow-50' },
-            { icon: FiPackage,       label: 'Cartons perdus',     value: String(stats.totalCartons),                    color: 'text-orange-600', bg: 'bg-orange-50' },
-            { icon: FiPackage,       label: 'Kg perdus',          value: `${stats.totalKg} kg`,                         color: 'text-orange-600', bg: 'bg-orange-50' },
-            { icon: FiDollarSign,    label: 'Pertes totales',     value: `${formatAmount(stats.totalLoss)} GNF`,        color: 'text-red-600',    bg: 'bg-red-50'    },
+            { icon: FiAlertTriangle, label: 'Total déclarations', value: String(stats.totalDamages), color: 'text-yellow-600', bg: 'bg-yellow-50' },
+            { icon: FiPackage,       label: 'Cartons perdus',     value: String(stats.totalCartons),  color: 'text-orange-600', bg: 'bg-orange-50' },
+            { icon: FiDollarSign,    label: 'Pertes totales',     value: `${formatAmount(stats.totalLoss)} GNF`, color: 'text-red-600', bg: 'bg-red-50' },
           ].map(({ icon: Icon, label, value, color, bg }) => (
             <div key={label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
               <div className="flex items-center gap-3">
@@ -228,7 +218,7 @@ export default function Damages() {
               <option value="">Sélectionner un produit...</option>
               {products.map((p: Product) => (
                 <option key={p._id} value={p._id}>
-                  {p.name} — Stock : {p.stockCartons} cartons / {p.stockKg} kg
+                  {p.name} — Stock : {p.stockCartons} cartons
                 </option>
               ))}
             </select>
@@ -237,10 +227,7 @@ export default function Damages() {
           {selectedProduct && (
             <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200 text-sm">
               <p className="font-semibold text-yellow-800">Stock actuel de {selectedProduct.name}</p>
-              <div className="flex gap-4 mt-1">
-                <span className="text-yellow-700">📦 {selectedProduct.stockCartons} cartons</span>
-                <span className="text-yellow-700">⚖️ {selectedProduct.stockKg} kg</span>
-              </div>
+              <p className="text-yellow-700 mt-1">📦 {selectedProduct.stockCartons} cartons</p>
             </div>
           )}
 
@@ -258,27 +245,18 @@ export default function Damages() {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Quantité (cartons)</label>
-              <input type="number" name="quantityCartons"
-                value={form.quantityCartons} onChange={handleChange} min="0"
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium text-gray-700">Quantité (kg)</label>
-              <input type="number" name="quantityKg"
-                value={form.quantityKg} onChange={handleChange} min="0"
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
-            </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Quantité (cartons)</label>
+            <input type="number" name="quantityCartons"
+              value={form.quantityCartons} onChange={handleChange} min="0"
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
           </div>
 
-          {selectedProduct && (Number(form.quantityCartons) > 0 || Number(form.quantityKg) > 0) && (
+          {selectedProduct && Number(form.quantityCartons) > 0 && (
             <div className="bg-red-50 rounded-lg p-3 border border-red-200 text-sm">
               <p className="text-red-700 font-semibold">
                 Perte estimée : {formatAmount(
-                  (Number(form.quantityCartons) * selectedProduct.pricePerCarton) +
-                  (Number(form.quantityKg) * selectedProduct.pricePerKg)
+                  Number(form.quantityCartons) * selectedProduct.pricePerCarton
                 )} GNF
               </p>
             </div>

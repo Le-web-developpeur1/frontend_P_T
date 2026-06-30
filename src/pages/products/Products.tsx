@@ -15,10 +15,7 @@ interface ProductForm {
   name: string;
   category: string;
   stockCartons: number;
-  stockKg: number;
-  kgPerCarton: number;
   pricePerCarton: number;
-  pricePerKg: number;
   purchasePricePerCarton: number;
   alertThreshold: number;
   // FCFA
@@ -34,18 +31,17 @@ interface Product extends ProductForm {
 interface StockForm {
   type: string;
   quantityCartons: number;
-  quantityKg: number;
   reason: string;
 }
 
 const emptyForm: ProductForm = {
-  name: '', category: '', stockCartons: 0, stockKg: 0,
-  kgPerCarton: 0, pricePerCarton: 0, pricePerKg: 0,
+  name: '', category: '', stockCartons: 0,
+  pricePerCarton: 0,
   purchasePricePerCarton: 0, alertThreshold: 5,
   deviseAchat: 'FG', purchasePriceFCFA: 0, tauxFCFA: 10,
 };
 
-const emptyStockForm: StockForm = { type: 'entrée', quantityCartons: 0, quantityKg: 0, reason: 'achat' };
+const emptyStockForm: StockForm = { type: 'entrée', quantityCartons: 0, reason: 'achat' };
 
 export default function Products() {
   const [products, setProducts]       = useState<Product[]>([]);
@@ -73,7 +69,6 @@ export default function Products() {
 
   useEffect(() => {
     fetchProducts();
-    // Récupérer le taux FCFA depuis les paramètres système
     getSystemConfig().then(res => {
       if (res.data.tauxFCFA) setTauxSysteme(res.data.tauxFCFA);
     }).catch(() => {});
@@ -84,13 +79,6 @@ export default function Products() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const newForm = { ...form, [name]: value };
-
-    // Recalcul stockKg
-    if (name === 'stockCartons' || name === 'kgPerCarton') {
-      const cartons     = Number(name === 'stockCartons' ? value : form.stockCartons);
-      const kgPerCarton = Number(name === 'kgPerCarton'  ? value : form.kgPerCarton);
-      newForm.stockKg   = cartons * kgPerCarton;
-    }
 
     // Si devise = FCFA → recalcul automatique du prix en FG
     if (name === 'purchasePriceFCFA' || name === 'tauxFCFA') {
@@ -105,7 +93,6 @@ export default function Products() {
         newForm.purchasePriceFCFA      = 0;
         newForm.purchasePricePerCarton = 0;
       } else {
-        // Pré-remplir le taux depuis le système
         newForm.tauxFCFA               = tauxSysteme;
         newForm.purchasePricePerCarton = 0;
       }
@@ -138,13 +125,12 @@ export default function Products() {
   const openDelete  = (product: Product) => { setSelected(product); setDeleteModal(true); };
 
   const handleSubmit = async () => {
-    if (!form.name || !form.kgPerCarton || !form.pricePerCarton || !form.pricePerKg) {
+    if (!form.name || !form.pricePerCarton) {
       toast.error('Veuillez remplir tous les champs obligatoires');
       return;
     }
     setSaving(true);
     try {
-      // On envoie uniquement les champs nécessaires au backend (pas deviseAchat, purchasePriceFCFA)
       const { deviseAchat, purchasePriceFCFA, tauxFCFA, ...dataToSend } = form;
       if (selected) {
         await updateProduct(selected._id, dataToSend);
@@ -212,9 +198,7 @@ export default function Products() {
         )}
       </div>
     )},
-    { header: 'Stock Kg',    render: (p: Product) => <span>{p.stockKg} kg</span> },
     { header: 'Prix/Carton', render: (p: Product) => <span>{formatAmount(p.pricePerCarton)} GNF</span> },
-    { header: 'Prix/Kg',     render: (p: Product) => <span>{formatAmount(p.pricePerKg)} GNF</span> },
     { header: 'Prix achat',  render: (p: Product) => <span>{formatAmount(p.purchasePricePerCarton)} GNF</span> },
     { header: 'Statut', render: (p: Product) => (
       <Badge
@@ -269,9 +253,7 @@ export default function Products() {
         <div className="grid grid-cols-2 gap-4">
           <Input label="Nom du produit *" name="name" value={form.name} onChange={handleChange} required className="col-span-2" />
           <Input label="Catégorie" name="category" value={form.category} onChange={handleChange} />
-          <Input label="Kg par carton *" name="kgPerCarton" type="number" value={form.kgPerCarton} onChange={handleChange} required />
-          <Input label="Stock initial (cartons)" name="stockCartons" type="number" value={form.stockCartons} onChange={handleChange} />
-          <Input label="Stock initial (kg) — calculé automatiquement" name="stockKg" type="number" value={form.stockKg} disabled className="bg-gray-100" />
+          <Input label="Nombre Total (cartons)" name="stockCartons" type="number" value={form.stockCartons} onChange={handleChange} />
 
           {/* ── Devise d'achat ─────────────────────────── */}
           <div className="col-span-2">
@@ -311,9 +293,8 @@ export default function Products() {
             </div>
           </div>
 
-          <Input label="Prix par carton (FG) *" name="pricePerCarton" type="number" value={form.pricePerCarton} onChange={handleChange} required />
-          <Input label="Prix par kg (FG) *"     name="pricePerKg"     type="number" value={form.pricePerKg}     onChange={handleChange} required />
-          <Input label="Seuil d'alerte (cartons)" name="alertThreshold" type="number" value={form.alertThreshold} onChange={handleChange} />
+          <Input label="Prix de vente par carton (FG) *" name="pricePerCarton" type="number" value={form.pricePerCarton} onChange={handleChange} required className="col-span-2" />
+          <Input label="Seuil d'alerte (cartons)" name="alertThreshold" type="number" value={form.alertThreshold} onChange={handleChange} className="col-span-2" />
         </div>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="ghost" onClick={() => setModalOpen(false)}>Annuler</Button>
@@ -346,7 +327,6 @@ export default function Products() {
             </select>
           </div>
           <Input label="Quantité (cartons)" name="quantityCartons" type="number" value={stockForm.quantityCartons} onChange={handleStockChange} />
-          <Input label="Quantité (kg)"      name="quantityKg"      type="number" value={stockForm.quantityKg}      onChange={handleStockChange} />
         </div>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="ghost" onClick={() => setStockModal(false)}>Annuler</Button>

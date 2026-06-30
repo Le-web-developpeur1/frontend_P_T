@@ -22,7 +22,6 @@ interface SaleFormItem {
   product: string;
   productName: string;
   quantity: number | string;
-  unit: string;
   unitPrice: number;
   total: number;
 }
@@ -46,7 +45,6 @@ interface EditForm {
 interface CurrentItem {
   product: string;
   quantity: number | string;
-  unit: string;
 }
 
 interface LastInvoice {
@@ -87,7 +85,7 @@ export default function Sales() {
   });
 
   const [currentItem, setCurrentItem] = useState<CurrentItem>({
-    product: '', quantity: 1, unit: 'carton'
+    product: '', quantity: 1
   });
 
   const fetchAll = async () => {
@@ -111,18 +109,18 @@ export default function Sales() {
     }
     const product = getProductById(currentItem.product);
     if (!product) return;
-    const unitPrice = currentItem.unit === 'carton' ? product.pricePerCarton : product.pricePerKg;
+    const unitPrice = product.pricePerCarton;
     const total = unitPrice * Number(currentItem.quantity);
     setForm(f => ({
       ...f,
       items: [...f.items, {
-        ...currentItem,
+        product: currentItem.product,
         quantity: Number(currentItem.quantity),
         productName: product.name,
         unitPrice, total
       }]
     }));
-    setCurrentItem({ product: '', quantity: 1, unit: 'carton' });
+    setCurrentItem({ product: '', quantity: 1 });
   };
 
   const removeItem = (i: number) =>
@@ -224,24 +222,6 @@ export default function Sales() {
     finally { setPrintLoading(false); }
   };
 
-  // const handleDownloadSaleInvoice = async (sale: any) => {
-  //   try {
-  //     const invoiceId = sale.invoiceId || null;
-  //     if (!invoiceId) {
-  //       toast.error('Aucune facture associée à cette vente');
-  //       return;
-  //     }
-  //     const res = await downloadInvoicePDF(invoiceId);
-  //     const url = window.URL.createObjectURL(new Blob([res.data]));
-  //     const a   = document.createElement('a');
-  //     a.href    = url;
-  //     a.download = `Facture-${sale.saleNumber}.pdf`;
-  //     a.click();
-  //     window.URL.revokeObjectURL(url);
-  //     toast.success('Facture téléchargée !');
-  //   } catch { toast.error('Erreur téléchargement'); }
-  // };
-
   const selectedClient = clients.find(c => c._id === form.client);
 
   const filteredSales = useMemo(() => {
@@ -249,11 +229,11 @@ export default function Sales() {
 
     if (search.trim()) {
       const q = search.toLowerCase();
-      result = result.filter(s => 
+      result = result.filter(s =>
         s.clientName?.toLowerCase().includes(q) ||
         s.saleNumber?.toLowerCase().includes(q)
       );
-    } 
+    }
 
     if (filterType !== "all") {
       result = result.filter(s => s.paymentType === filterType);
@@ -293,7 +273,7 @@ export default function Sales() {
       </span>
     )},
     { header: 'Type',      render: (s: any) => (
-      <Badge 
+      <Badge
         label={s.paymentType === 'comptant' ? 'Comptant' : s.paymentType === 'virement' ? 'Virement' : 'Crédit'}
         variant={s.paymentType === 'comptant' ? 'success' : s.paymentType === 'virement' ? 'info' : 'warning'}
       />
@@ -461,7 +441,7 @@ export default function Sales() {
 
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
             <p className="text-sm font-semibold text-blue-900 mb-3">➕ Ajouter un article</p>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2 flex flex-col gap-1">
                 <label className="text-xs text-gray-500">Produit</label>
                 <select value={currentItem.product}
@@ -472,16 +452,7 @@ export default function Sales() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Unité</label>
-                <select value={currentItem.unit}
-                  onChange={(e) => setCurrentItem({ ...currentItem, unit: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
-                  <option value="carton">Carton</option>
-                  <option value="kg">Kg</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-gray-500">Quantité</label>
+                <label className="text-xs text-gray-500">Quantité (cartons)</label>
                 <input type="number" value={currentItem.quantity} min="1"
                   onChange={(e) => setCurrentItem({ ...currentItem, quantity: e.target.value })}
                   className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
@@ -497,7 +468,7 @@ export default function Sales() {
               <table className="w-full text-sm">
                 <thead className="bg-blue-900 text-white text-xs">
                   <tr>
-                    {['Produit', 'Qté', 'Unité', 'Prix unit.', 'Total', ''].map(h => (
+                    {['Produit', 'Qté (cartons)', 'Prix unit.', 'Total', ''].map(h => (
                       <th key={h} className="px-3 py-2.5 text-left font-medium">{h}</th>
                     ))}
                   </tr>
@@ -507,7 +478,6 @@ export default function Sales() {
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-3 py-2.5 text-gray-900">{item.productName}</td>
                       <td className="px-3 py-2.5 text-gray-700">{item.quantity}</td>
-                      <td className="px-3 py-2.5 text-gray-700">{item.unit}</td>
                       <td className="px-3 py-2.5 text-gray-900">{formatAmount(item.unitPrice)}</td>
                       <td className="px-3 py-2.5 font-semibold text-gray-900">{formatAmount(item.total)}</td>
                       <td className="px-3 py-2.5">
@@ -627,7 +597,7 @@ export default function Sales() {
               <table className="w-full text-sm">
                 <thead className="bg-blue-900 text-white text-xs">
                   <tr>
-                    {['Produit', 'Qté', 'Unité', 'Prix', 'Total'].map(h => (
+                    {['Produit', 'Qté (cartons)', 'Prix', 'Total'].map(h => (
                       <th key={h} className="px-3 py-2.5 text-left font-medium">{h}</th>
                     ))}
                   </tr>
@@ -637,7 +607,6 @@ export default function Sales() {
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-3 py-2.5 text-gray-900">{item.productName}</td>
                       <td className="px-3 py-2.5 text-gray-700">{item.quantity}</td>
-                      <td className="px-3 py-2.5 text-gray-700">{item.unit}</td>
                       <td className="px-3 py-2.5 text-gray-900">{formatAmount(item.unitPrice)}</td>
                       <td className="px-3 py-2.5 font-semibold">{formatAmount(item.total)}</td>
                     </tr>
