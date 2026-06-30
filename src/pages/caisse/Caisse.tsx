@@ -5,7 +5,7 @@ import Badge from '../../components/common/Badge';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 import {
   FiDollarSign, FiShoppingCart, FiTrendingUp,
-  FiTrendingDown, FiCreditCard, FiActivity
+  FiTrendingDown, FiCreditCard, FiActivity, FiTruck
 } from 'react-icons/fi';
 
 interface CaisseData {
@@ -14,6 +14,7 @@ interface CaisseData {
   totalComptant: number;
   totalCredit: number;
   totalDepenses: number;
+  paiementsFournisseursComptant: number;
   soldeCaisse: number;
   nbTransactions: number;
   encaisseAujourdhui: number;
@@ -188,125 +189,59 @@ export default function Caisse() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="bg-green-50 p-2.5 rounded-xl">
-              <FiShoppingCart className="text-green-600" size={18} />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Ventes comptant</p>
-              <p className="text-xl font-bold text-green-600">{formatAmount(data.totalComptant)} GNF</p>
-            </div>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-2">
-            <div className="bg-green-500 h-2 rounded-full transition-all"
-              style={{ width: data.totalEncaisse > 0 ? `${Math.round((data.totalComptant / data.totalEncaisse) * 100)}%` : '0%' }} />
-          </div>
-          <p className="text-xs text-gray-400 mt-1">
-            {data.totalEncaisse > 0 ? Math.round((data.totalComptant / data.totalEncaisse) * 100) : 0}% du total encaissé
-          </p>
-        </div>
-
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="bg-yellow-50 p-2.5 rounded-xl">
-              <FiCreditCard className="text-yellow-600" size={18} />
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">Crédit en cours</p>
-              <p className="text-xl font-bold text-yellow-600">{formatAmount(data.totalCredit)} GNF</p>
-            </div>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-2">
-            <div className="bg-yellow-500 h-2 rounded-full transition-all"
-              style={{ width: data.totalVentes > 0 ? `${Math.round((data.totalCredit / data.totalVentes) * 100)}%` : '0%' }} />
-          </div>
-          <p className="text-xs text-gray-400 mt-1">
-            {data.totalVentes > 0 ? Math.round((data.totalCredit / data.totalVentes) * 100) : 0}% des ventes non encaissé
-          </p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+  <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+    <div className="flex items-center gap-3 mb-3">
+      <div className="bg-green-50 p-2.5 rounded-xl">
+        <FiShoppingCart className="text-green-600" size={18} />
       </div>
+      <div>
+        <p className="text-xs text-gray-500">Ventes comptant</p>
+        <p className="text-xl font-bold text-green-600">{formatAmount(data.totalComptant)} GNF</p>
+      </div>
+    </div>
+    <div className="w-full bg-gray-100 rounded-full h-2">
+      <div className="bg-green-500 h-2 rounded-full transition-all"
+        style={{ width: data.totalEncaisse > 0 ? `${Math.round((data.totalComptant / data.totalEncaisse) * 100)}%` : '0%' }} />
+    </div>
+    <p className="text-xs text-gray-400 mt-1">
+      {data.totalEncaisse > 0 ? Math.round((data.totalComptant / data.totalEncaisse) * 100) : 0}% du total encaissé
+    </p>
+  </div>
 
-      {/* Tabs ventes / dépenses
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="flex border-b border-gray-100">
-          <button
-            onClick={() => setActiveTab('ventes')}
-            className={`flex-1 py-3 text-sm font-semibold transition-all
-              ${activeTab === 'ventes' ? 'text-blue-900 border-b-2 border-blue-900 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}`}>
-            Ventes ({data.sales.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('depenses')}
-            className={`flex-1 py-3 text-sm font-semibold transition-all
-              ${activeTab === 'depenses' ? 'text-blue-900 border-b-2 border-blue-900 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700'}`}>
-            Dépenses ({data.expenses.length})
-          </button>
-        </div>
+  <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+    <div className="flex items-center gap-3 mb-3">
+      <div className="bg-yellow-50 p-2.5 rounded-xl">
+        <FiCreditCard className="text-yellow-600" size={18} />
+      </div>
+      <div>
+        <p className="text-xs text-gray-500">Crédit en cours</p>
+        <p className="text-xl font-bold text-yellow-600">{formatAmount(data.totalCredit)} GNF</p>
+      </div>
+    </div>
+    <div className="w-full bg-gray-100 rounded-full h-2">
+      <div className="bg-yellow-500 h-2 rounded-full transition-all"
+        style={{ width: data.totalVentes > 0 ? `${Math.round((data.totalCredit / data.totalVentes) * 100)}%` : '0%' }} />
+    </div>
+    <p className="text-xs text-gray-400 mt-1">
+      {data.totalVentes > 0 ? Math.round((data.totalCredit / data.totalVentes) * 100) : 0}% des ventes non encaissé
+    </p>
+  </div>
 
-        <div className="overflow-x-auto">
-          {activeTab === 'ventes' ? (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  {['N° Vente', 'Client', 'Montant', 'Encaissé', 'Reste', 'Type', 'Statut', 'Date'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {data.sales.length === 0 ? (
-                  <tr><td colSpan={8} className="text-center py-10 text-gray-400">Aucune vente</td></tr>
-                ) : data.sales.map((s: any, i: number) => (
-                  <tr key={i} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-mono text-xs font-semibold text-blue-900">{s.saleNumber}</td>
-                    <td className="px-4 py-3 text-gray-700">{s.clientName}</td>
-                    <td className="px-4 py-3 font-semibold text-gray-900">{formatAmount(s.totalAmount)} GNF</td>
-                    <td className="px-4 py-3 text-green-600 font-semibold">{formatAmount(s.amountPaid)} GNF</td>
-                    <td className="px-4 py-3">
-                      <span className={s.remainingAmount > 0 ? 'text-red-600 font-semibold' : 'text-gray-400'}>
-                        {formatAmount(s.remainingAmount)} GNF
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge label={s.paymentType} variant={s.paymentType === 'comptant' ? 'success' : 'warning'} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge label={s.status} variant={statusVariant[s.status] || 'default'} />
-                    </td>
-                    <td className="px-4 py-3 text-xs text-gray-500">{formatDate(s.createdAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  {['Libellé', 'Catégorie', 'Montant', 'Date'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {data.expenses.length === 0 ? (
-                  <tr><td colSpan={4} className="text-center py-10 text-gray-400">Aucune dépense</td></tr>
-                ) : data.expenses.map((e: any, i: number) => (
-                  <tr key={i} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-gray-800">{e.title}</td>
-                    <td className="px-4 py-3">
-                      <Badge label={e.category} variant="info" />
-                    </td>
-                    <td className="px-4 py-3 font-semibold text-red-600">{formatAmount(e.amount)} GNF</td>
-                    <td className="px-4 py-3 text-xs text-gray-500">{formatDate(e.date)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div> */}
+  {/* Nouvelle carte — Paiements fournisseurs */}
+  <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
+    <div className="flex items-center gap-3 mb-3">
+      <div className="bg-orange-50 p-2.5 rounded-xl">
+        <FiTruck className="text-orange-600" size={18} />
+      </div>
+      <div>
+        <p className="text-xs text-gray-500">Paiements fournisseurs (Caisse)</p>
+        <p className="text-xl font-bold text-orange-600">{formatAmount(data.paiementsFournisseursComptant)} GNF</p>
+      </div>
+    </div>
+    <p className="text-xs text-gray-400 mt-1">Réglés en espèces, déduits de la caisse</p>
+  </div>
+</div>
     </div>
   );
 }

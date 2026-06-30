@@ -55,6 +55,7 @@ export default function Credits() {
   const [saving, setSaving]           = useState<boolean>(false);
   const [downloading, setDownloading] = useState<boolean>(false);
   const [search, setSearch]           = useState<string>('');
+  const [modePaiement, setModePaiement] = useState<string>('comptant');
 
   const fetchClients = async () => {
     try {
@@ -80,6 +81,7 @@ export default function Credits() {
   const openPay = (client: Client) => {
     setSelected(client);
     setPayAmount('');
+    setModePaiement('comptant');
     setPayModal(true);
   };
 
@@ -91,7 +93,10 @@ export default function Credits() {
     }
     setSaving(true);
     try {
-      await recordClientPayment(selected._id, { amount: Number(payAmount) });
+      await recordClientPayment(selected._id, { 
+        amount: Number(payAmount),
+        modePaiement 
+      });
       toast.success('Paiement enregistré !');
       setPayModal(false);
       fetchClients();
@@ -367,13 +372,48 @@ export default function Credits() {
               {formatAmount(selected?.currentDebt || 0)} GNF
             </p>
           </div>
+
+          {/* Mode de paiement */}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Mode de paiement</label>
+            <div className="flex gap-2">
+              {[
+                { value: 'comptant', label: 'Comptant (Caisse)' },
+                { value: 'virement', label: 'Virement (Banque)' },
+              ].map(({ value, label }) => (
+                <button key={value}
+                  onClick={() => setModePaiement(value)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-semibold border transition-colors ${
+                    modePaiement === value
+                      ? 'bg-blue-900 text-white border-blue-900'
+                      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <Input
             label="Montant à payer (GNF)"
             type="number"
             value={payAmount}
-            onChange={(e) => setPayAmount(e.target.value)}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              if (val > (selected?.currentDebt || 0)) {
+                toast.error(`Maximum : ${formatAmount(selected?.currentDebt || 0)} GNF`);
+                setPayAmount(String(selected?.currentDebt || 0));
+              } else {
+                setPayAmount(e.target.value);
+              }
+            }}
             placeholder="0"
           />
+          <button
+            onClick={() => setPayAmount(String(selected?.currentDebt || 0))}
+            className="text-xs text-blue-600 hover:underline">
+            Payer tout ({formatAmount(selected?.currentDebt || 0)} GNF)
+          </button>
         </div>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="ghost" onClick={() => setPayModal(false)}>Annuler</Button>

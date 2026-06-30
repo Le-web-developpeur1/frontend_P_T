@@ -4,27 +4,30 @@ import { formatAmount } from '../../utils/formatAmount';
 import toast from 'react-hot-toast';
 import {
   FiTrendingUp, FiPackage, FiDollarSign, FiCreditCard,
-  FiAlertTriangle, FiBarChart2, FiRefreshCw, FiInfo
+  FiAlertTriangle, FiBarChart2, FiRefreshCw, FiInfo, FiTruck
 } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 interface CapitalData {
   capitalInitial:        number;
   chiffreAffairesEstime: number;
-  stockFinal:           number;
+  stockFinal:            number;
   caisse:                number;
   banque:                number;
   credits:               number;
   avaries:               number;
   totalDepenses:         number;
+  paiementsFournisseursComptant: number;
+  paiementsFournisseursVirement: number;
+  totalPaiementsFournisseurs:    number;
   capitalDisponible:     number;
   details: {
-    totalVentesComptant:  number;
-    totalAcomptesInitiaux:        number;
-    totalClientPayments:  number;
-    valeurVentesAchat:    number;
-    nbProduits:           number;
-    nbClients:            number;
+    totalVentesComptant:   number;
+    totalAcomptesInitiaux: number;
+    totalClientPayments:   number;
+    valeurVentesAchat:     number;
+    nbProduits:            number;
+    nbClients:             number;
   };
 }
 
@@ -59,76 +62,76 @@ export default function Capital() {
 
   const cards = [
     {
-      label:    'Capital Initial',
-      value:    data.capitalInitial,
-      icon:     FiBarChart2,
-      color:    'text-blue-700',
-      bg:       'bg-blue-50',
-      border:   'border-blue-200',
-      tooltip:  'Valeur totale du stock au prix d\'achat'
+      label:   'Capital Initial',
+      value:   data.capitalInitial,
+      icon:    FiBarChart2,
+      color:   'text-blue-700',
+      bg:      'bg-blue-50',
+      border:  'border-blue-200',
+      tooltip: 'Valeur totale du stock au prix d\'achat'
     },
     {
-      label:    'Chiffre d\'affaires estimé',
-      value:    data.chiffreAffairesEstime,
-      icon:     FiTrendingUp,
-      color:    'text-green-700',
-      bg:       'bg-green-50',
-      border:   'border-green-200',
-      tooltip:  'Valeur totale du stock au prix de vente'
+      label:   'Chiffre d\'affaires estimé',
+      value:   data.chiffreAffairesEstime,
+      icon:    FiTrendingUp,
+      color:   'text-green-700',
+      bg:      'bg-green-50',
+      border:  'border-green-200',
+      tooltip: 'Valeur totale du stock au prix de vente'
     },
     {
-      label:    'Stock actuel',
-      value:    data.stockFinal,
-      icon:     FiPackage,
-      color:    'text-indigo-700',
-      bg:       'bg-indigo-50',
-      border:   'border-indigo-200',
-      tooltip:  'Valeur actuelle du stock au prix d\'achat'
+      label:   'Stock actuel',
+      value:   data.stockFinal,
+      icon:    FiPackage,
+      color:   'text-indigo-700',
+      bg:      'bg-indigo-50',
+      border:  'border-indigo-200',
+      tooltip: 'Valeur actuelle du stock au prix d\'achat'
     },
     {
-      label:    'Caisse',
-      value:    data.caisse,
-      icon:     FiDollarSign,
-      color:    'text-yellow-700',
-      bg:       'bg-yellow-50',
-      border:   'border-yellow-200',
-      tooltip:  'Ventes comptant + acomptes + paiements crédits - dépenses'
+      label:   'Caisse',
+      value:   data.caisse,
+      icon:    FiDollarSign,
+      color:   'text-yellow-700',
+      bg:      'bg-yellow-50',
+      border:  'border-yellow-200',
+      tooltip: 'Ventes comptant + acomptes + paiements crédits - dépenses'
     },
     {
-      label:    'Banque',
-      value:    data.banque,
-      icon:     FiDollarSign,
-      color:    'text-cyan-700',
-      bg:       'bg-cyan-50',
-      border:   'border-cyan-200',
-      tooltip:  'Total des ventes par virement bancaire'
+      label:   'Banque',
+      value:   data.banque,
+      icon:    FiDollarSign,
+      color:   'text-cyan-700',
+      bg:      'bg-cyan-50',
+      border:  'border-cyan-200',
+      tooltip: 'Total des ventes par virement bancaire'
     },
     {
-      label:    'Crédits accordés',
-      value:    data.credits,
-      icon:     FiCreditCard,
-      color:    'text-orange-700',
-      bg:       'bg-orange-50',
-      border:   'border-orange-200',
-      tooltip:  'Total des dettes clients actives'
+      label:   'Crédits accordés',
+      value:   data.credits,
+      icon:    FiCreditCard,
+      color:   'text-orange-700',
+      bg:      'bg-orange-50',
+      border:  'border-orange-200',
+      tooltip: 'Total des dettes clients actives'
     },
     {
-      label:    'Avaries & Pertes',
-      value:    data.avaries,
-      icon:     FiAlertTriangle,
-      color:    'text-red-700',
-      bg:       'bg-red-50',
-      border:   'border-red-200',
-      tooltip:  'Total des pertes estimées sur avaries'
+      label:   'Avaries & Pertes',
+      value:   data.avaries,
+      icon:    FiAlertTriangle,
+      color:   'text-red-700',
+      bg:      'bg-red-50',
+      border:  'border-red-200',
+      tooltip: 'Total des pertes estimées sur avaries'
     },
     {
-      label:    'Dépenses',
-      value:    data.totalDepenses,
-      icon:     FiDollarSign,
-      color:    'text-pink-700',
-      bg:       'bg-pink-50',
-      border:   'border-pink-200',
-      tooltip:  'Total des dépenses engagées'
+      label:   'Dépenses',
+      value:   data.totalDepenses,
+      icon:    FiDollarSign,
+      color:   'text-pink-700',
+      bg:      'bg-pink-50',
+      border:  'border-pink-200',
+      tooltip: 'Total des dépenses engagées'
     },
   ];
 
@@ -166,6 +169,39 @@ export default function Capital() {
         </div>
       )}
 
+      {/* Capital disponible — carte compacte */}
+      <div className="bg-gradient-to-r from-[#1A2B5F] to-[#0f1a3a] rounded-2xl p-5 shadow-lg">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-white/70 text-xs font-medium mb-1">CAPITAL DISPONIBLE</p>
+            <p className="text-3xl font-extrabold text-[#D4A017]">
+              {formatAmount(data.capitalDisponible)} GNF
+            </p>
+            <p className="text-white/40 text-xs mt-1">
+              Stock final + Caisse + Banque + Crédits
+            </p>
+          </div>
+          <div className="flex gap-4 text-right">
+            <div>
+              <p className="text-white/50 text-[10px]">Caisse</p>
+              <p className="text-white text-sm font-semibold">{formatAmount(data.caisse)}</p>
+            </div>
+            <div>
+              <p className="text-white/50 text-[10px]">Banque</p>
+              <p className="text-white text-sm font-semibold">{formatAmount(data.banque)}</p>
+            </div>
+            <div>
+              <p className="text-white/50 text-[10px]">Stock</p>
+              <p className="text-white text-sm font-semibold">{formatAmount(data.stockFinal)}</p>
+            </div>
+            <div>
+              <p className="text-white/50 text-[10px]">Crédits</p>
+              <p className="text-white text-sm font-semibold">{formatAmount(data.credits)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Cartes indicateurs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(({ label, value, icon: Icon, color, bg, border, tooltip }) => (
@@ -188,31 +224,23 @@ export default function Capital() {
         ))}
       </div>
 
-      {/* Capital disponible — grande carte */}
-      <div className="bg-gradient-to-r from-[#1A2B5F] to-[#0f1a3a] rounded-2xl p-6 shadow-lg">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <p className="text-white/70 text-sm font-medium mb-1">CAPITAL DISPONIBLE</p>
-            <p className="text-4xl font-extrabold text-[#D4A017]">
-              {formatAmount(data.capitalDisponible)} GNF
-            </p>
-            <p className="text-white/50 text-xs mt-2">
-                Stock final + Caisse + Banque + Crédits
-            </p>
+      {/* Paiements fournisseurs */}
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+        <h3 className="text-sm font-bold text-blue-900 mb-4 flex items-center gap-2">
+          <FiTruck className="text-orange-600" size={16} /> Paiements fournisseurs
+        </h3>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-yellow-50 rounded-xl p-3 text-center">
+            <p className="text-xs text-gray-500 mb-1">Par caisse</p>
+            <p className="font-bold text-yellow-700">{formatAmount(data.paiementsFournisseursComptant)} GNF</p>
           </div>
-          <div className="text-right space-y-1">
-            <div className="text-white/70 text-xs">
-              <span className="text-green-400">+</span> Caisse : {formatAmount(data.caisse)} GNF
-            </div>
-            <div className="text-white/70 text-xs">
-              <span className="text-green-400">+</span> Banque : {formatAmount(data.banque)} GNF
-            </div>
-            <div className="text-white/70 text-xs">
-              <span className="text-green-400">+</span> Stock : {formatAmount(data.stockFinal)} GNF
-            </div>
-            <div className="text-white/70 text-xs">
-              <span className="text-green-400">+</span> Crédits : {formatAmount(data.credits)} GNF
-            </div>
+          <div className="bg-cyan-50 rounded-xl p-3 text-center">
+            <p className="text-xs text-gray-500 mb-1">Par banque</p>
+            <p className="font-bold text-cyan-700">{formatAmount(data.paiementsFournisseursVirement)} GNF</p>
+          </div>
+          <div className="bg-orange-50 rounded-xl p-3 text-center">
+            <p className="text-xs text-gray-500 mb-1">Total</p>
+            <p className="font-bold text-orange-700">{formatAmount(data.totalPaiementsFournisseurs)} GNF</p>
           </div>
         </div>
       </div>
@@ -225,10 +253,11 @@ export default function Capital() {
           <h3 className="text-sm font-bold text-blue-900 mb-4">Détail de la caisse</h3>
           <div className="space-y-3">
             {[
-              { label: 'Ventes comptant',       value: data.details.totalVentesComptant  },
-              { label: 'Acomptes sur crédits',  value: data.details.totalAcomptesInitiaux       },
-              { label: 'Paiements de dettes',   value: data.details.totalClientPayments  },
-              { label: 'Dépenses (déduites)',   value: -data.totalDepenses, negative: true },
+              { label: 'Ventes comptant',                 value: data.details.totalVentesComptant  },
+              { label: 'Acomptes sur crédits',             value: data.details.totalAcomptesInitiaux },
+              { label: 'Paiements de dettes',              value: data.details.totalClientPayments  },
+              { label: 'Dépenses (déduites)',              value: -data.totalDepenses, negative: true },
+              { label: 'Paiements fournisseurs (Caisse)',  value: -data.paiementsFournisseursComptant, negative: true },
             ].map(({ label, value, negative }) => (
               <div key={label} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                 <span className="text-sm text-gray-600">{label}</span>
@@ -249,10 +278,10 @@ export default function Capital() {
           <h3 className="text-sm font-bold text-blue-900 mb-4">Informations générales</h3>
           <div className="space-y-3">
             {[
-              { label: 'Nombre de produits actifs',    value: `${data.details.nbProduits} produits`  },
-              { label: 'Valeur ventes (prix achat)', value: `${formatAmount(data.details.valeurVentesAchat)} GNF` },
-              { label: 'Clients avec dettes actives',  value: `${data.details.nbClients} clients`    },
-              { label: 'Bénéfice après ventes', value: `${formatAmount(totalVentes - data.details.valeurVentesAchat)} GNF` },
+              { label: 'Nombre de produits actifs',   value: `${data.details.nbProduits} produits`  },
+              { label: 'Valeur ventes (prix achat)',  value: `${formatAmount(data.details.valeurVentesAchat)} GNF` },
+              { label: 'Clients avec dettes actives', value: `${data.details.nbClients} clients`    },
+              { label: 'Bénéfice après ventes',       value: `${formatAmount(totalVentes - data.details.valeurVentesAchat)} GNF` },
             ].map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                 <span className="text-sm text-gray-600">{label}</span>

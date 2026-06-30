@@ -19,6 +19,8 @@ interface StatCardProps {
 interface DailyReport {
   totalSales: number;
   totalCash: number;
+  totalVirement: number;
+  totalEncaisse: number;
   totalCredit: number;
   totalExpenses: number;
   netProfit: number;
@@ -139,7 +141,7 @@ export default function Dashboard() {
           <StatCard
             icon={FiDollarSign}
             label="Encaissé"
-            value={formatAmount(daily?.totalCash || 0)}
+            value={formatAmount(daily?.totalEncaisse || 0)}
             sub="Paiements comptants"
             iconColor="text-green-600"
           />

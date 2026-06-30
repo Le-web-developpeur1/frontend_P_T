@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
-import { getClients, createClient, updateClient, deleteClient, recordClientPayment, downloadPaymentReceipt, getClientHistory, downloadClientReleve } from '../../api/clientAPI';
+import { getClients, createClient, updateClient, deleteClient, getClientHistory, downloadClientReleve } from '../../api/clientAPI';
 import { formatAmount } from '../../utils/formatAmount';
 import Table from '../../components/common/Table';
 import Modal from '../../components/common/Modal';
@@ -8,7 +8,7 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Badge from '../../components/common/Badge';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2, FiDollarSign, FiDownload, FiPrinter, FiEye } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiDownload, FiEye, FiDollarSign } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 import { useAuth } from "../../context/AuthContext";
 
@@ -18,22 +18,16 @@ export default function Clients() {
   const [clients, setClients]               = useState([]);
   const [loading, setLoading]               = useState(true);
   const [modalOpen, setModalOpen]           = useState(false);
-  const [payModal, setPayModal]             = useState(false);
   const [deleteModal, setDeleteModal]       = useState(false);
   const [selected, setSelected]             = useState(null);
   const [form, setForm]                     = useState(emptyForm);
-  const [payAmount, setPayAmount]           = useState('');
   const [saving, setSaving]                 = useState(false);
   const [search, setSearch]                 = useState('');
-  const [lastPayment, setLastPayment]       = useState<{ id: string; clientName: string } | null>(null);
-  const [receiptModal, setReceiptModal]     = useState<boolean>(false);
-  const [receiptLoading, setReceiptLoading] = useState<boolean>(false);
   const [historyModal, setHistoryModal]     = useState<boolean>(false);
   const [history, setHistory]               = useState<any[]>([]);
   const [historyClient, setHistoryClient]   = useState<any>(null);
   const [historyLoading, setHistoryLoading] = useState<boolean>(false);
   const [downloading, setDownloading]       = useState<boolean>(false);
-
 
   const { user } = useAuth();
   const canDelete = user?.role === "admin" || user?.role === "gestionnaire";
@@ -48,13 +42,10 @@ export default function Clients() {
   useEffect(() => { fetchClients(); }, []);
   useAutoRefresh(fetchClients, 30000);
 
-
-
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const openCreate   = ()  => { setSelected(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit     = (c) => { setSelected(c); setForm({ ...c }); setModalOpen(true); };
-  const openPay      = (c) => { setSelected(c); setPayAmount(''); setPayModal(true); };
   const openDelete   = (c) => { setSelected(c); setDeleteModal(true); };
 
   const handleSubmit = async () => {
@@ -64,27 +55,6 @@ export default function Clients() {
       selected ? await updateClient(selected._id, form) : await createClient(form);
       toast.success(selected ? 'Client mis à jour !' : 'Client créé !');
       setModalOpen(false);
-      fetchClients();
-    } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
-    finally { setSaving(false); }
-  };
-
-  const handlePayment = async () => {
-    if (!payAmount || Number(payAmount) <= 0) { toast.error('Montant invalide'); return; }
-    if (Number(payAmount) > selected.currentDebt) {
-      toast.error('Le montant dépasse la dette actuelle'); return ;
-    }
-    setSaving(true);
-    try {
-      const res = await recordClientPayment(selected._id, { amount: Number(payAmount) });
-      toast.success('Paiement enregistré !');
-      setPayModal(false);
-
-      if (res.data.paymentId) {
-        setLastPayment({ id: res.data.paymentId, clientName: selected.name });
-        setReceiptModal(true);
-      }
-
       fetchClients();
     } catch (err) { toast.error(err.response?.data?.message || 'Erreur'); }
     finally { setSaving(false); }
@@ -101,46 +71,7 @@ export default function Clients() {
     finally { setSaving(false); }
   };
 
-  //Fonction de téléchargement du reçu
-  const handleDownloadReceipt = async () => {
-    if (!lastPayment) return;
-    setReceiptLoading(true);
-    try {
-      const res = await downloadPaymentReceipt(lastPayment.id);
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const a   = document.createElement('a');
-      a.href    = url;
-      a.download = `Recu-${lastPayment.clientName}.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-      toast.success('Reçu téléchargé !');
-    } catch { toast.error('Erreur téléchargement reçu'); }
-    finally { setReceiptLoading(false); }
-  };
-  
-  //Fonction d'impression du reçu 
-  const handlePrintReceipt = async () => {
-    if (!lastPayment) return;
-    setReceiptLoading(true);
-    try {
-      const res  = await downloadPaymentReceipt(lastPayment.id);
-      const blob = new Blob([res.data], { type: 'application/pdf' });
-      const url  = window.URL.createObjectURL(blob);
-      const printWindow = window.open(url, '_blank');
-      if (printWindow) {
-        printWindow.onload = () => { printWindow.focus(); printWindow.print(); };
-      } else {
-        const a = document.createElement('a');
-        a.href  = url;
-        a.download = `Recu-${lastPayment.clientName}.pdf`;
-        a.click();
-      }
-      window.URL.revokeObjectURL(url);
-    } catch { toast.error('Erreur impression reçu'); }
-    finally { setReceiptLoading(false); }
-  };
-
-  //Fonction pour ouvrir l'historique
+  // Fonction pour ouvrir l'historique
   const openHistory = async (client: any) => {
     setHistoryClient(client);
     setHistory([]);
@@ -157,7 +88,7 @@ export default function Clients() {
     }
   };
 
-  //Télécharger le relevé PDF
+  // Télécharger le relevé PDF
   const handleDownloadReleve = async () => {
     if (!historyClient) return;
     setDownloading(true);
@@ -204,25 +135,20 @@ export default function Clients() {
     )},
     { header: 'Actions', render: (c) => (
       <div className="flex items-center gap-2">
-        {c.currentDebt > 0 && (
-          <button onClick={() => openPay(c)}
-            className="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 transition-colors"
-            title="Enregistrer paiement">
-            <FiDollarSign size={15} />
-          </button>
-        )}
         <button onClick={() => openHistory(c)}
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
           title="Historique">
           <FiEye size={15} />
         </button>
         <button onClick={() => openEdit(c)}
-          className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors">
+          className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+          title="Modifier">
           <FiEdit2 size={15} />
         </button>
         {canDelete && (
           <button onClick={() => openDelete(c)}
-            className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
+            className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+            title="Supprimer">
             <FiTrash2 size={15} />
           </button>
         )}
@@ -267,19 +193,6 @@ export default function Clients() {
         </div>
       </Modal>
 
-      {/* Modal Paiement */}
-      <Modal isOpen={payModal} onClose={() => setPayModal(false)} title={`Paiement — ${selected?.name}`} size="sm">
-        <p className="text-sm text-gray-600 mb-4">
-          Dette actuelle : <strong className="text-red-600">{formatAmount(selected?.currentDebt || 0)} GNF</strong>
-        </p>
-        <Input label="Montant à payer (GNF)" type="number" value={payAmount}
-          onChange={(e) => setPayAmount(e.target.value)} placeholder="0" />
-        <div className="flex justify-end gap-3 mt-6">
-          <Button variant="ghost" onClick={() => setPayModal(false)}>Annuler</Button>
-          <Button variant="success" onClick={handlePayment} loading={saving}>Confirmer</Button>
-        </div>
-      </Modal>
-
       {/* Modal Supprimer */}
       <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer" size="sm">
         <p className="text-gray-600">Désactiver le client <strong>{selected?.name}</strong> ?</p>
@@ -289,34 +202,7 @@ export default function Clients() {
         </div>
       </Modal>
 
-      {/* Modal Reçu de paiement */}
-      <Modal isOpen={receiptModal} onClose={() => setReceiptModal(false)} title="Paiement enregistré !" size="sm">
-        <div className="text-center space-y-5">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-            <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-gray-800 font-semibold">Paiement enregistré avec succès</p>
-            <p className="text-sm text-gray-500 mt-1">
-              Le solde de <span className="font-bold text-blue-900">{lastPayment?.clientName}</span> a été mis à jour
-            </p>
-          </div>
-          <div className="flex flex-col gap-3">
-            <Button variant="primary" onClick={handleDownloadReceipt} loading={receiptLoading} className="w-full">
-              <FiDownload size={16} /> Télécharger le reçu PDF
-            </Button>
-            <Button variant="ghost" onClick={handlePrintReceipt} loading={receiptLoading} className="w-full">
-              <FiPrinter size={16} /> Imprimer le reçu
-            </Button>
-            <Button variant="ghost" onClick={() => setReceiptModal(false)} className="w-full">
-              Fermer
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
+      {/* Modal Historique */}
       <Modal isOpen={historyModal} onClose={() => setHistoryModal(false)}
         title={`Historique — ${historyClient?.name}`} size="xl">
 
@@ -333,6 +219,12 @@ export default function Clients() {
             </div>
           </div>
           <div className="flex gap-2">
+            {historyClient?.currentDebt > 0 && (
+              <a href="/credits"
+                className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 transition-colors">
+                <FiDollarSign size={14} /> Payer sur la page Crédits
+              </a>
+            )}
             <button onClick={handleDownloadReleve} disabled={downloading}
               className="flex items-center gap-2 px-3 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors disabled:opacity-50">
               <FiDownload size={14} /> Télécharger PDF
