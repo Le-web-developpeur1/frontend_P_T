@@ -134,7 +134,7 @@ export default function Caisse() {
           <div className="space-y-3">
             {[
               { icon: FiTrendingUp,   label: 'Encaissé',      value: `${formatAmount(data.encaisseAujourdhui)} GNF`, color: 'text-green-600', bg: 'bg-green-50'  },
-              { icon: FiTrendingDown, label: 'Dépenses',      value: `${formatAmount(data.depensesAujourdhui)} GNF`, color: 'text-red-600',   bg: 'bg-red-50'    },
+              { icon: FiTrendingDown, label: 'Dépenses',      value: `${formatAmount(data.totalDepenses)} GNF`, color: 'text-red-600',   bg: 'bg-red-50'    },
               { icon: FiActivity,     label: 'Transactions',  value: String(data.nbTransactionsAujourdhui),          color: 'text-blue-600',  bg: 'bg-blue-50'   },
             ].map(({ icon: Icon, label, value, color, bg }) => (
               <div key={label} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
@@ -149,8 +149,8 @@ export default function Caisse() {
             ))}
             <div className="flex items-center justify-between p-3 rounded-xl bg-blue-900 mt-2">
               <span className="text-sm text-white/70">Solde du jour</span>
-              <span className={`text-sm font-bold ${data.soldeAujourdhui >= 0 ? 'text-[#D4A017]' : 'text-red-400'}`}>
-                {formatAmount(data.soldeAujourdhui)} GNF
+              <span className={`text-sm font-bold ${data.totalEncaisse - data.totalDepenses >= 0 ? 'text-[#D4A017]' : 'text-red-400'}`}>
+                {formatAmount(data.totalEncaisse - data.totalDepenses)} GNF
               </span>
             </div>
           </div>
