@@ -2,10 +2,18 @@
 
 // API modules
 declare module '../../api/reportAPI' {
-  export function getDailyReport(): Promise<any>;
-  export function getMonthlyReport(): Promise<any>;
+  export function getDailyReport(params?: any): Promise<any>;
+  export function getMonthlyReport(params?: any): Promise<any>;
+  export function getStockReport(): Promise<any>;
   export function getDebtReport(): Promise<any>;
+  export function getSupplierReport(): Promise<any>;
   export function getCapitalReport(): Promise<any>;
+  export function getCaisseReport(): Promise<any>;
+  export function exportReport(type: string, format: string, params?: any): Promise<any>;
+  export function getCaisseMovements(params?: any): Promise<any>;
+  export function getBankMovements(params?: any): Promise<any>;
+  export function exportCaisseReport(format: string, params?: any): Promise<any>;
+  export function exportBankReport(format: string, params?: any): Promise<any>;
 }
 
 declare module '../../api/productAPI' {
