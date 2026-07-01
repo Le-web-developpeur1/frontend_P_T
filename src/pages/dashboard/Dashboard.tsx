@@ -160,7 +160,7 @@ export default function Dashboard() {
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${(v / 1000000).toFixed(1)}M`} />
-              <Tooltip formatter={(value: number) => [`${formatAmount(value)} GNF`]} />
+              <Tooltip formatter={(value) => [`${formatAmount(Number(value || 0))} GNF`]} />
               <Bar dataKey="value" fill="#1A2B5F" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
