@@ -263,6 +263,7 @@ export default function Sales() {
   }, [sales, search, filterPeriod, filterStatus, filterType]);
 
   const columns = [
+    { header: 'Date',      render: (s: any) => <span className="text-xs text-gray-500">{formatDate(s.createdAt)}</span> },
     { header: 'N° Vente',  render: (s: any) => <span className="font-mono text-xs font-semibold text-blue-900">{s.saleNumber}</span> },
     { header: 'Client',    render: (s: any) => <span className="text-sm text-gray-700">{s.clientName}</span> },
     { header: 'Montant',   render: (s: any) => <span className="text-sm font-semibold">{formatAmount(s.totalAmount)} GNF</span> },
@@ -281,7 +282,6 @@ export default function Sales() {
     { header: 'Statut',    render: (s: any) => (
       <Badge label={s.status} variant={statusVariant[s.status] || 'default'} />
     )},
-    { header: 'Date',      render: (s: any) => <span className="text-xs text-gray-500">{formatDate(s.createdAt)}</span> },
     { header: 'Actions',   render: (s: any) => (
       <div className="flex items-center gap-1.5">
         <button onClick={() => { setSelected(s); setDetailModal(true); }}

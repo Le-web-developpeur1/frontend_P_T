@@ -198,8 +198,8 @@ export default function Products() {
         )}
       </div>
     )},
-    { header: 'Prix/Carton', render: (p: Product) => <span>{formatAmount(p.pricePerCarton)} GNF</span> },
-    { header: 'Prix achat',  render: (p: Product) => <span>{formatAmount(p.purchasePricePerCarton)} GNF</span> },
+    { header: 'Prix achat/Carton',  render: (p: Product) => <span>{formatAmount(p.purchasePricePerCarton)} GNF</span> },
+    { header: 'Prix vente/Carton', render: (p: Product) => <span>{formatAmount(p.pricePerCarton)} GNF</span> },
     { header: 'Statut', render: (p: Product) => (
       <Badge
         label={p.stockCartons <= p.alertThreshold ? 'Stock bas' : 'OK'}
