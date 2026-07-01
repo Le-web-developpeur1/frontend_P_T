@@ -123,13 +123,10 @@ export default function Dashboard() {
 
       <div>
         <h1 className="text-2xl font-bold text-blue-900">Tableau de bord</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          {new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
+        <p className="text-gray-500 text-sm">Vue globale de la caisse depuis le début</p>
       </div>
 
       <div>
-        <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Aujourd'hui</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={FiShoppingCart}
