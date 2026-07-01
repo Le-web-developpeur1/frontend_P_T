@@ -63,6 +63,13 @@ declare module '../../api/bankAPI' {
   export function transferToBanque(data: any): Promise<any>;
 }
 
+declare module '../../api/cashInAPI' {
+  export function addCashIn(data: any): Promise<any>;
+  export function getCashIns(): Promise<any>;
+  export function addBankIn(data: any): Promise<any>;
+  export function getBankIns(): Promise<any>;
+}
+
 declare module '../../api/systemAPI' {
   export function getSystemInfo(): Promise<any>;
   export function updateSystemInfo(data: any): Promise<any>;
@@ -93,6 +100,8 @@ declare module '../../api/employeeAPI' {
   export function giveAdvance(id: string, data: any): Promise<any>;
   export function getAdvances(id: string): Promise<any>;
 }
+
+
 
 // Hooks
 declare module '../../hooks/useAutoRefresh' {

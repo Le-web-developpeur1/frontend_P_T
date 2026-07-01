@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { formatAmount, formatDate } from '../../utils/formatAmount';
 import { getBankReport, transferToBanque } from '../../api/bankAPI';
+import { addBankIn } from '../../api/cashInAPI';
 import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import toast from 'react-hot-toast';
 import {
   FiArrowUpCircle, FiArrowDownCircle, FiRefreshCw,
-  FiTrendingUp, FiTrendingDown, FiRepeat
+  FiTrendingUp, FiTrendingDown, FiRepeat, FiPlusCircle
 } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
@@ -18,6 +19,13 @@ export default function Bank() {
   const [transferModal, setTransferModal] = useState<boolean>(false);
   const [transferForm, setTransferForm]   = useState({ amount: 0, direction: 'caisse_vers_banque', note: '' });
   const [saving, setSaving]               = useState<boolean>(false);
+
+  // Modal alimentation banque
+  const [bankInModal, setBankInModal]   = useState<boolean>(false);
+  const [bankInAmount, setBankInAmount] = useState<string>('');
+  const [bankInReason, setBankInReason] = useState<string>('');
+  const [bankInNote, setBankInNote]     = useState<string>('');
+  const [savingBankIn, setSavingBankIn] = useState<boolean>(false);
 
   const fetchData = async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
@@ -51,12 +59,30 @@ export default function Bank() {
     } finally { setSaving(false); }
   };
 
+  const handleBankIn = async () => {
+    if (!bankInAmount || Number(bankInAmount) <= 0) { toast.error('Montant invalide'); return; }
+    if (!bankInReason) { toast.error('Raison obligatoire'); return; }
+    setSavingBankIn(true);
+    try {
+      await addBankIn({ amount: Number(bankInAmount), reason: bankInReason, note: bankInNote });
+      toast.success('Banque alimentée !');
+      setBankInModal(false);
+      setBankInAmount('');
+      setBankInReason('');
+      setBankInNote('');
+      fetchData();
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Erreur'); }
+    finally { setSavingBankIn(false); }
+  };
+
   const iconMouvement = (categorie: string) => {
     switch (categorie) {
-      case 'vente_virement':    return <FiTrendingUp   className="text-green-500" size={18} />;
-      case 'transfert_entree':  return <FiArrowUpCircle className="text-blue-500"  size={18} />;
-      case 'transfert_sortie':  return <FiArrowDownCircle className="text-orange-500" size={18} />;
-      case 'paiement_fournisseur': return <FiTrendingDown className="text-red-500" size={18} />;
+      case 'vente_virement':       return <FiTrendingUp      className="text-green-500"  size={18} />;
+      case 'transfert_entree':     return <FiArrowUpCircle   className="text-blue-500"   size={18} />;
+      case 'transfert_sortie':     return <FiArrowDownCircle className="text-orange-500" size={18} />;
+      case 'paiement_fournisseur': return <FiTrendingDown    className="text-red-500"    size={18} />;
+      case 'paiement_dette_client':return <FiTrendingUp      className="text-green-500"  size={18} />;
+      case 'bank_in':              return <FiPlusCircle      className="text-cyan-500"   size={18} />;
       default: return <FiRepeat size={18} />;
     }
   };
@@ -78,7 +104,12 @@ export default function Bank() {
           <h1 className="text-2xl font-bold text-blue-900">Module Banque</h1>
           <p className="text-gray-500 text-sm">Suivi des mouvements bancaires</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
+          <button onClick={() => setBankInModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-xl text-sm font-semibold hover:bg-cyan-700 transition-colors">
+            <FiPlusCircle size={15} />
+            Alimenter la banque
+          </button>
           <button onClick={() => fetchData(true)} disabled={refreshing}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-blue-900 hover:bg-blue-50 transition-colors disabled:opacity-50">
             <FiRefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
@@ -119,10 +150,10 @@ export default function Bank() {
       {/* Cartes stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Ventes virement',        value: data.totalVentesVirement,    color: 'text-green-700',  bg: 'bg-green-50',  icon: FiTrendingUp,    type: 'entrée' },
-          { label: 'Transferts reçus',        value: data.totalTransfertsEntree,  color: 'text-blue-700',   bg: 'bg-blue-50',   icon: FiArrowUpCircle, type: 'entrée' },
-          { label: 'Paiements fournisseurs',  value: data.totalDepensesVirement,  color: 'text-red-700',    bg: 'bg-red-50',    icon: FiTrendingDown,  type: 'sortie' },
-          { label: 'Transferts envoyés',      value: data.totalTransfertsSortie,  color: 'text-orange-700', bg: 'bg-orange-50', icon: FiArrowDownCircle, type: 'sortie' },
+          { label: 'Ventes virement',       value: data.totalVentesVirement,   color: 'text-green-700',  bg: 'bg-green-50',  icon: FiTrendingUp,      type: 'entrée' },
+          { label: 'Transferts reçus',       value: data.totalTransfertsEntree, color: 'text-blue-700',   bg: 'bg-blue-50',   icon: FiArrowUpCircle,   type: 'entrée' },
+          { label: 'Paiements fournisseurs', value: data.totalDepensesVirement, color: 'text-red-700',    bg: 'bg-red-50',    icon: FiTrendingDown,    type: 'sortie' },
+          { label: 'Transferts envoyés',     value: data.totalTransfertsSortie, color: 'text-orange-700', bg: 'bg-orange-50', icon: FiArrowDownCircle, type: 'sortie' },
         ].map(({ label, value, color, bg, icon: Icon, type }) => (
           <div key={label} className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
             <div className="flex items-start justify-between mb-3">
@@ -177,12 +208,41 @@ export default function Bank() {
         )}
       </div>
 
-      {/* Modal Transfert */}
+      {/* ── Modal Alimenter la banque ── */}
+      <Modal isOpen={bankInModal} onClose={() => setBankInModal(false)}
+        title="Alimenter la banque" size="sm">
+        <div className="space-y-4">
+          <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-3">
+            <p className="text-sm text-gray-600">
+              Solde actuel : <strong className="text-cyan-700">{formatAmount(data.soldeBanque)} GNF</strong>
+            </p>
+          </div>
+          <Input label="Montant (GNF)" type="number" value={bankInAmount}
+            onChange={(e) => setBankInAmount(e.target.value)} placeholder="0" />
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Raison <span className="text-red-500">*</span></label>
+            <select value={bankInReason} onChange={(e) => setBankInReason(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900">
+              <option value="">Sélectionner...</option>
+              <option value="Apport personnel">Apport personnel</option>
+              <option value="Virement reçu">Virement reçu</option>
+              <option value="Remboursement reçu">Remboursement reçu</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <Input label="Note (optionnel)" value={bankInNote}
+            onChange={(e) => setBankInNote(e.target.value)} placeholder="Détails..." />
+        </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="ghost" onClick={() => setBankInModal(false)}>Annuler</Button>
+          <Button variant="primary" onClick={handleBankIn} loading={savingBankIn}>Confirmer</Button>
+        </div>
+      </Modal>
+
+      {/* ── Modal Transfert ── */}
       <Modal isOpen={transferModal} onClose={() => setTransferModal(false)}
         title="Effectuer un transfert" size="sm">
         <div className="space-y-4">
-
-          {/* Direction du transfert */}
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Direction du transfert</label>
             <div className="grid grid-cols-2 gap-2">
@@ -207,7 +267,6 @@ export default function Bank() {
             </div>
           </div>
 
-          {/* Soldes actuels */}
           <div className="bg-gray-50 rounded-xl p-3 text-xs text-gray-600 space-y-1">
             <p>Solde banque actuel : <strong className="text-blue-900">{formatAmount(data.soldeBanque)} GNF</strong></p>
           </div>
