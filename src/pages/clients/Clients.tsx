@@ -261,18 +261,32 @@ export default function Clients() {
                           ? 'bg-blue-100 text-blue-700'
                           : 'bg-green-100 text-green-700'
                       }`}>
-                        {item.type === 'vente' ? '🛒 Vente' : '💰 Paiement'}
+                        {item.type === 'vente' ? 'Vente' : 'Paiement'}
                       </span>
                     </td>
                     <td className="px-3 py-2.5 text-xs font-mono">{item.reference}</td>
                     <td className="px-3 py-2.5 font-semibold whitespace-nowrap">
                       {formatAmount(item.montant)} GNF
                     </td>
+                    {/* Payé */}
                     <td className="px-3 py-2.5 text-green-600 whitespace-nowrap">
-                      {item.type === 'vente' ? `${formatAmount(item.paye)} GNF` : `${formatAmount(item.montant)} GNF`}
+                      {item.type === 'vente'
+                        ? `${formatAmount(item.paye || 0)} GNF`  // acompte initial
+                        : `${formatAmount(item.montant)} GNF`     // montant du paiement
+                      }
                     </td>
-                    <td className="px-3 py-2.5 text-red-600 font-semibold whitespace-nowrap">
-                      {formatAmount(item.reste || 0)} GNF
+
+                    {/* Reste */}
+                    <td className="px-3 py-2.5 font-semibold whitespace-nowrap">
+                      {item.type === 'vente' ? (
+                        <span className={item.reste > 0 ? 'text-red-600' : 'text-green-600'}>
+                          {formatAmount(item.reste)} GNF
+                        </span>
+                      ) : (
+                        <span className="text-red-600">
+                        {formatAmount(item.reste || 0)} GNF
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-2.5">
                       {item.type === 'vente' ? (

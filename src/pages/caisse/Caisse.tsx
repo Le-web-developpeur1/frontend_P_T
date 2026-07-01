@@ -4,7 +4,8 @@ import { formatAmount } from '../../utils/formatAmount';
 import toast from 'react-hot-toast';
 import {
   FiDollarSign, FiTrendingUp, FiTrendingDown,
-  FiActivity, FiShoppingCart, FiCreditCard, FiTruck, FiRefreshCw
+  FiActivity, FiShoppingCart, FiCreditCard, FiTruck, FiRefreshCw,
+  FiCheckCircle
 } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
@@ -21,8 +22,10 @@ interface CaisseData {
   soldeCaisse: number;
   nbTransactions: number;
   encaisseAujourdhui: number;
+  comptantToday: number;
   depensesAujourdhui: number;
   paiementsFournisseursToday: number;
+  clientPayTodayComptant: number,
   soldeAujourdhui: number;
   nbTransactionsAujourdhui: number;
   encaisseMois: number;
@@ -132,11 +135,11 @@ export default function Caisse() {
 
         {/* Aujourd'hui */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             <h3 className="text-sm font-bold text-blue-900">Aujourd'hui</h3>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2">
 
             {/* Ventes comptant du jour */}
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
@@ -147,7 +150,7 @@ export default function Caisse() {
                 <div>
                   <p className="text-xs text-gray-500">Ventes comptant</p>
                   <p className="font-bold text-green-600">
-                    {formatAmount(data.encaisseAujourdhui)} GNF
+                    {formatAmount(data.comptantToday)} GNF
                   </p>
                 </div>
               </div>
@@ -169,6 +172,21 @@ export default function Caisse() {
               <span className="text-xs text-gray-400">
                 {data.totalVentes > 0 ? Math.round((data.totalCredit / data.totalVentes) * 100) : 0}% des ventes
               </span>
+            </div>
+
+            {/* Crédits remboursés du jour */}
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="bg-white rounded-lg p-2">
+                  <FiCheckCircle className="text-green-600" size={16} />
+                </div>
+                <div>
+                  <p className="text-xs text-green-500">Crédits remboursés</p>
+                  <p className="font-bold text-green-600">
+                    {formatAmount(data.clientPayTodayComptant)} GNF
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Paiements fournisseurs du jour */}
@@ -226,7 +244,6 @@ export default function Caisse() {
 
       {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
 
-        Ventes comptant globales
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
           <div className="flex items-center gap-3 mb-3">
             <div className="bg-green-50 p-2.5 rounded-xl">
