@@ -145,7 +145,7 @@ export default function Employees() {
     setSaving(true);
     try {
       await deleteEmployee(selected._id);
-      toast.success('Employé désactivé !');
+      toast.success('Employé supprimé avec succès !');
       setDeleteModal(false);
       fetchAll();
     } catch { toast.error('Erreur'); }
@@ -230,7 +230,7 @@ export default function Employees() {
           <FiEdit2 size={15} />
         </button>
         <button onClick={() => { setSelected(e); setDeleteModal(true); }}
-          className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Désactiver">
+          className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Supprimer">
           <FiTrash2 size={15} />
         </button>
       </div>
@@ -503,10 +503,10 @@ export default function Employees() {
 
       {/* ── Modal Supprimer ──────────────────────────── */}
       <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer" size="sm">
-        <p className="text-gray-600">Désactiver <strong>{selected?.name}</strong> ?</p>
+        <p className="text-gray-600">Supprimer <strong>{selected?.name}</strong> ?</p>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="ghost"  onClick={() => setDeleteModal(false)}>Annuler</Button>
-          <Button variant="danger" onClick={handleDelete} loading={saving}>Désactiver</Button>
+          <Button variant="danger" onClick={handleDelete} loading={saving}>Supprimer</Button>
         </div>
       </Modal>
 
