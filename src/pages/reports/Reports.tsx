@@ -185,12 +185,14 @@ export default function Reports() {
                   </div>
                 ))}
               </div>
-              <div className="bg-green-50 rounded-xl p-4 flex justify-between items-center">
+              
+              {/* <div className="bg-green-50 rounded-xl p-4 flex justify-between items-center">
                 <span className="font-semibold text-gray-700">Bénéfice net</span>
                 <span className={`text-xl font-bold ${data.netProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatAmount(data.netProfit)} GNF
                 </span>
-              </div>
+              </div> */}
+
               {data.sales?.length > 0 && (
                 <div>
                   <p className="font-semibold text-gray-700 mb-3">Détail des ventes ({data.salesCount})</p>
@@ -253,7 +255,7 @@ export default function Reports() {
               <div className="overflow-x-auto rounded-xl border border-gray-200">
                 <table className="w-full text-sm">
                   <thead className="bg-blue-900 text-white">
-                    <tr>{['Produit', 'Catégorie', 'Stock Cartons', 'Prix/Carton', 'Valeur stock (achat)', 'Statut'].map(h => (
+                    <tr>{['Produit', 'Catégorie', 'Stock Cartons', 'Prix d\'achat/Carton', 'Valeur stock (achat)', 'Statut'].map(h => (
                       <th key={h} className="px-4 py-2 text-left">{h}</th>
                     ))}</tr>
                   </thead>
