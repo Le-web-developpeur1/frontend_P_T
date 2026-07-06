@@ -174,10 +174,11 @@ export default function Reports() {
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Ventes totales', value: `${formatAmount(data.totalSales)} GNF`,    color: 'text-blue-900'   },
-                  { label: 'Encaissé',       value: `${formatAmount(data.totalCash)} GNF`,     color: 'text-green-600'  },
-                  { label: 'Crédit',         value: `${formatAmount(data.totalCredit)} GNF`,   color: 'text-yellow-600' },
-                  { label: 'Dépenses',       value: `${formatAmount(data.totalExpenses)} GNF`, color: 'text-red-600'    },
+                  { label: 'Ventes totales',        value: `${formatAmount(data.totalSales)} GNF`,    color: 'text-blue-900'   },
+                  { label: 'Encaissé',              value: `${formatAmount(data.totalCash)} GNF`,     color: 'text-green-600'  },
+                  { label: 'Crédit',                value: `${formatAmount(data.totalCredit)} GNF`,   color: 'text-yellow-600' },
+                  { label: 'Dépenses',              value: `${formatAmount(data.totalExpenses)} GNF`, color: 'text-red-600'    },
+                  { label: 'Total cartons vendus',  value: `${formatAmount(data.totalCartonsVendus)} Cartons`, color: 'text-green-600'    },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="bg-gray-50 rounded-xl p-4">
                     <p className="text-xs text-gray-500">{label}</p>
