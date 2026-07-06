@@ -245,6 +245,7 @@ export default function Reports() {
                 {[
                   { label: 'Valeur stock (prix achat)', value: `${formatAmount(data.valeurStockAchat)} GNF`, color: 'text-blue-900' },
                   { label: 'Produits en stock bas',     value: `${data.lowStock?.length || 0} produit(s)`,  color: 'text-red-600'  },
+                  { label: 'Nombre total cartons en stock',     value: `${data.totalCartons || 0} carton(s)`,  color: 'text-green-600'  },
                 ].map(({ label, value, color }) => (
                   <div key={label} className="bg-gray-50 rounded-xl p-4">
                     <p className="text-xs text-gray-500">{label}</p>
