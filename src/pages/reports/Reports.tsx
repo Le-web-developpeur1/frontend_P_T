@@ -241,7 +241,7 @@ export default function Reports() {
           {/* ── Stocks ── */}
           {activeTab === 'stock' && (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 {[
                   { label: 'Valeur stock (prix achat)', value: `${formatAmount(data.valeurStockAchat)} GNF`, color: 'text-blue-900' },
                   { label: 'Produits en stock bas',     value: `${data.lowStock?.length || 0} produit(s)`,  color: 'text-red-600'  },
