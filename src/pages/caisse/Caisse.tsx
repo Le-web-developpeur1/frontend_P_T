@@ -195,9 +195,6 @@ export default function Caisse() {
                   <p className="font-bold text-yellow-600">{formatAmount(data.totalCreditToday)} GNF</p>
                 </div>
               </div>
-              <span className="text-xs text-gray-400">
-                {data.totalVentes > 0 ? Math.round((data.totalCredit / data.totalVentes) * 100) : 0}% des ventes
-              </span>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">

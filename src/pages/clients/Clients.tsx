@@ -67,7 +67,10 @@ export default function Clients() {
       toast.success('Client désactivé !');
       setDeleteModal(false);
       fetchClients();
-    } catch { toast.error('Erreur'); }
+    } catch (error) { 
+      const errorMessage = error.response?.data?.message || error.message || 'Erreur de suppression';
+      toast.error(errorMessage);
+    }
     finally { setSaving(false); }
   };
 
@@ -195,7 +198,7 @@ export default function Clients() {
 
       {/* Modal Supprimer */}
       <Modal isOpen={deleteModal} onClose={() => setDeleteModal(false)} title="Confirmer" size="sm">
-        <p className="text-gray-600">Désactiver le client <strong>{selected?.name}</strong> ?</p>
+        <p className="text-gray-600">Supprimer le client <strong>{selected?.name}</strong> ?</p>
         <div className="flex justify-end gap-3 mt-6">
           <Button variant="ghost" onClick={() => setDeleteModal(false)}>Annuler</Button>
           <Button variant="danger" onClick={handleDelete} loading={saving}>Supprimer</Button>
@@ -268,15 +271,13 @@ export default function Clients() {
                     <td className="px-3 py-2.5 font-semibold whitespace-nowrap">
                       {formatAmount(item.montant)} GNF
                     </td>
-                    {/* Payé */}
                     <td className="px-3 py-2.5 text-green-600 whitespace-nowrap">
                       {item.type === 'vente'
-                        ? `${formatAmount(item.paye || 0)} GNF`  // acompte initial
-                        : `${formatAmount(item.montant)} GNF`     // montant du paiement
+                        ? `${formatAmount(item.paye || 0)} GNF`  
+                        : `${formatAmount(item.montant)} GNF`    
                       }
                     </td>
 
-                    {/* Reste */}
                     <td className="px-3 py-2.5 font-semibold whitespace-nowrap">
                       {item.type === 'vente' ? (
                         <span className={item.reste > 0 ? 'text-red-600' : 'text-green-600'}>
