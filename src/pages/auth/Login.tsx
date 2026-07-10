@@ -121,7 +121,7 @@ export default function Login() {
 
         <div className="text-center mt-5">
           <p className="text-gray-400 text-xs">
-            © 2026 S.A.D Poisson — Tous droits réservés
+           &copy; 2026 S.A.D Poisson — Tous droits réservés
           </p>
         </div>
       </div>

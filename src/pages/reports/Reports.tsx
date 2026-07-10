@@ -242,9 +242,10 @@ export default function Reports() {
           {/* ── Stocks ── */}
           {activeTab === 'stock' && (
             <>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 {[
                   { label: 'Valeur stock (prix achat)', value: `${formatAmount(data.valeurStockAchat)} GNF`, color: 'text-blue-900' },
+                  { label: 'Valeur stock (prix Vente)', value: `${formatAmount(data.valeurStockVente)} GNF`, color: 'text-blue-900' },
                   { label: 'Produits en stock bas',     value: `${data.lowStock?.length || 0} produit(s)`,  color: 'text-red-600'  },
                   { label: 'Nombre total cartons en stock',     value: `${data.totalCartons || 0} carton(s)`,  color: 'text-green-600'  },
                 ].map(({ label, value, color }) => (
@@ -257,7 +258,7 @@ export default function Reports() {
               <div className="overflow-x-auto rounded-xl border border-gray-200">
                 <table className="w-full text-sm">
                   <thead className="bg-blue-900 text-white">
-                    <tr>{['Produit', 'Catégorie', 'Stock Cartons', 'Prix d\'achat/Carton', 'Valeur stock (achat)', 'Statut'].map(h => (
+                    <tr>{['Produit', 'Catégorie', 'Stock Cartons', 'Prix d\'achat/Carton', 'Prix de vente/Carton', 'Valeur stock (achat)', 'Valeur stock (vente)', 'Statut'].map(h => (
                       <th key={h} className="px-4 py-2 text-left">{h}</th>
                     ))}</tr>
                   </thead>
@@ -268,7 +269,9 @@ export default function Reports() {
                         <td className="px-4 py-2">{p.category || '—'}</td>
                         <td className="px-4 py-2">{p.stockCartons}</td>
                         <td className="px-4 py-2">{formatAmount(p.purchasePricePerCarton)} GNF</td>
-                        <td className="px-4 py-2 font-semibold text-blue-900">{formatAmount(p.stockCartons * p.purchasePricePerCarton || 0)} GNF</td>
+                        <td className="px-4 py-2">{formatAmount(p.pricePerCarton)} GNF</td>
+                        <td className="px-4 py-2 font-semibold text-blue-900">{formatAmount(data.valeurStockAchat)} GNF</td>
+                        <td className="px-4 py-2 font-semibold text-blue-900">{formatAmount(data.valeurStockVente)} GNF</td>
                         <td className="px-4 py-2">
                           <Badge label={p.stockCartons <= p.alertThreshold ? 'Stock bas' : 'OK'}
                             variant={p.stockCartons <= p.alertThreshold ? 'warning' : 'success'} />
