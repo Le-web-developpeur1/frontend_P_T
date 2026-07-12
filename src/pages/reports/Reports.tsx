@@ -172,11 +172,12 @@ export default function Reports() {
           {/* ── Journalier ── */}
           {activeTab === 'daily' && (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
                 {[
                   { label: 'Ventes totales',        value: `${formatAmount(data.totalSales)} GNF`,    color: 'text-blue-900'   },
                   { label: 'Encaissé',              value: `${formatAmount(data.totalCash)} GNF`,     color: 'text-green-600'  },
                   { label: 'Crédit',                value: `${formatAmount(data.totalCredit)} GNF`,   color: 'text-yellow-600' },
+                  { label: 'Remboursé',             value: `${formatAmount(data.creditRembourseToday)} GNF`,   color: 'text-yellow-600' },
                   { label: 'Dépenses',              value: `${formatAmount(data.totalExpenses)} GNF`, color: 'text-red-600'    },
                   { label: 'Total cartons vendus',  value: `${formatAmount(data.totalCartonsVendus)} Cartons`, color: 'text-green-600'    },
                 ].map(({ label, value, color }) => (
