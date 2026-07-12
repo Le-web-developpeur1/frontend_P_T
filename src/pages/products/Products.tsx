@@ -345,157 +345,154 @@ export default function Products() {
       </Modal>
 
       {/* Modal Ajustement Stock */}
-      {/* Modal Ajustement Stock */}
-<Modal 
-  isOpen={stockModal} 
-  onClose={() => setStockModal(false)} 
-  title={`Ajuster le stock — ${selected?.name}`}
->
-  <div className="space-y-4">
-    {/* Stock actuel */}
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-      <p className="text-sm text-blue-700">
-        <strong>Stock actuel :</strong> {selected?.stockCartons || 0} carton(s)
-      </p>
-    </div>
-    
-    {/* Boutons rapides */}
-    <div className="flex gap-2">
-      <button
-        onClick={() => setStockForm({ 
-          type: 'ajustement', 
-          quantityCartons: 0, 
-          reason: 'Mise à zéro' 
-        })}
-        className="flex-1 px-3 py-2 bg-yellow-50 border border-yellow-300 text-yellow-700 text-sm font-medium rounded-lg hover:bg-yellow-100 transition-colors"
+      <Modal 
+        isOpen={stockModal} 
+        onClose={() => setStockModal(false)} 
+        title={`Ajuster le stock — ${selected?.name}`}
       >
-        🔄 Mettre à 0
-      </button>
-      <button
-        onClick={() => setStockForm({ 
-          type: 'sortie', 
-          quantityCartons: selected?.stockCartons || 0, 
-          reason: 'Vidage complet' 
-        })}
-        className="flex-1 px-3 py-2 bg-red-50 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors"
-      >
-        ⬇️ Tout retirer
-      </button>
-    </div>
-    
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-700">Type d'opération</label>
-      <select 
-        name="type" 
-        value={stockForm.type} 
-        onChange={handleStockChange}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900"
-      >
-        <option value="entrée">Entrée (Ajouter au stock)</option>
-        <option value="sortie">Sortie (Retirer du stock)</option>
-        <option value="ajustement">Ajustement (Définir une valeur exacte)</option>
-      </select>
-    </div>
-    
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-700">Raison</label>
-      <select 
-        name="reason" 
-        value={stockForm.reason} 
-        onChange={handleStockChange}
-        className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900"
-      >
-        <option value="achat">Achat</option>
-        <option value="retour">Retour</option>
-        <option value="perte">Perte</option>
-        <option value="ajustement">Ajustement</option>
-        <option value="preparation_suppression">Préparation suppression</option>
-      </select>
-    </div>
-    
-    <Input 
-      label={
-        stockForm.type === 'ajustement' 
-          ? 'Nouvelle valeur (cartons)' 
-          : 'Quantité (cartons)'
-      }
-      name="quantityCartons" 
-      type="number" 
-      value={stockForm.quantityCartons} 
-      onChange={handleStockChange}
-      placeholder={stockForm.type === 'ajustement' ? 'Exemple: 0, 10, 50...' : ''}
-    />
-    
-    {/* Aperçu du résultat */}
-    {selected && (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-        <p className="text-xs text-gray-600">
-          <strong>Résultat :</strong>{' '}
-          {stockForm.type === 'ajustement' 
-            ? `${stockForm.quantityCartons} carton(s)` 
-            : stockForm.type === 'entrée'
-            ? `${selected.stockCartons + Number(stockForm.quantityCartons)} carton(s)`
-            : `${Math.max(0, selected.stockCartons - Number(stockForm.quantityCartons))} carton(s)`
-          }
-        </p>
-      </div>
-    )}
-  </div>
-  
-  <div className="flex justify-end gap-3 mt-6">
-    <Button variant="ghost" onClick={() => setStockModal(false)}>
-      Annuler
-    </Button>
-    <Button variant="success" onClick={handleStockSubmit} loading={saving}>
-      ✅ Confirmer
-    </Button>
-  </div>
-</Modal>
+        <div className="space-y-4">
+          {/* Stock actuel */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-sm text-blue-700">
+              <strong>Stock actuel :</strong> {selected?.stockCartons || 0} carton(s)
+            </p>
+          </div>
+          
+          {/* Boutons rapides */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setStockForm({ 
+                type: 'ajustement', 
+                quantityCartons: 0, 
+                reason: 'Mise à zéro' 
+              })}
+              className="flex-1 px-3 py-2 bg-yellow-50 border border-yellow-300 text-yellow-700 text-sm font-medium rounded-lg hover:bg-yellow-100 transition-colors"
+            >
+              🔄 Mettre à 0
+            </button>
+            <button
+              onClick={() => setStockForm({ 
+                type: 'sortie', 
+                quantityCartons: selected?.stockCartons || 0, 
+                reason: 'Vidage complet' 
+              })}
+              className="flex-1 px-3 py-2 bg-red-50 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors"
+            >
+              ⬇️ Tout retirer
+            </button>
+          </div>
+          
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Type d'opération</label>
+            <select 
+              name="type" 
+              value={stockForm.type} 
+              onChange={handleStockChange}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900"
+            >
+              <option value="entrée">Entrée (Ajouter au stock)</option>
+              <option value="sortie">Sortie (Retirer du stock)</option>
+              <option value="ajustement">Ajustement (Définir une valeur exacte)</option>
+            </select>
+          </div>
+          
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-medium text-gray-700">Raison</label>
+            <select 
+              name="reason" 
+              value={stockForm.reason} 
+              onChange={handleStockChange}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900"
+            >
+              <option value="achat">Achat</option>
+              <option value="retour">Retour</option>
+              <option value="perte">Perte</option>
+              <option value="ajustement">Ajustement</option>
+              <option value="preparation_suppression">Préparation suppression</option>
+            </select>
+          </div>
+          
+          <Input 
+            label={
+              stockForm.type === 'ajustement' 
+                ? 'Nouvelle valeur (cartons)' 
+                : 'Quantité (cartons)'
+            }
+            name="quantityCartons" 
+            type="number" 
+            value={stockForm.quantityCartons} 
+            onChange={handleStockChange}
+            placeholder={stockForm.type === 'ajustement' ? 'Exemple: 0, 10, 50...' : ''}
+          />
+          
+          {/* Aperçu du résultat */}
+          {selected && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <p className="text-xs text-gray-600">
+                <strong>Résultat :</strong>{' '}
+                {stockForm.type === 'ajustement' 
+                  ? `${stockForm.quantityCartons} carton(s)` 
+                  : stockForm.type === 'entrée'
+                  ? `${selected.stockCartons + Number(stockForm.quantityCartons)} carton(s)`
+                  : `${Math.max(0, selected.stockCartons - Number(stockForm.quantityCartons))} carton(s)`
+                }
+              </p>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="ghost" onClick={() => setStockModal(false)}>
+            Annuler
+          </Button>
+          <Button variant="success" onClick={handleStockSubmit} loading={saving}>
+            ✅ Confirmer
+          </Button>
+        </div>
+      </Modal>
 
-{/* Modal Supprimer */}
-<Modal 
-  isOpen={deleteModal} 
-  onClose={() => setDeleteModal(false)} 
-  title="Confirmer la suppression" 
-  size="sm"
->
-  <div className="space-y-4">
-    <p className="text-gray-600">
-      Voulez-vous vraiment supprimer le produit{' '}
-      <strong className="text-gray-900">{selected?.name}</strong> ?
-    </p>
-    
-    {/* ℹ️ Info générale sur la logique de suppression */}
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-      <p className="text-xs text-blue-700">
-        <strong>💡 Comment ça marche :</strong>
-        <br />
-        • Si le produit n'a <strong>jamais été utilisé</strong> → Suppression définitive (même avec stock)
-        <br />
-        • Si le produit a un <strong>historique</strong> (ventes, avaries, mouvements) → Archivage (stock doit être à 0)
-      </p>
-    </div>
-    
-    {/* ⚠️ Alerte si stock restant (affiché dynamiquement après tentative) */}
-    {/* On ne peut pas savoir à l'avance si le produit a un historique, 
-        donc on laisse le backend gérer l'erreur */}
-  </div>
-  
-  <div className="flex justify-end gap-3 mt-6">
-    <Button variant="ghost" onClick={() => setDeleteModal(false)}>
-      Annuler
-    </Button>
-    <Button 
-      variant="danger" 
-      onClick={handleDelete} 
-      loading={saving}
-    >
-      Supprimer
-    </Button>
-  </div>
-</Modal>
-
-
+      {/* Modal Supprimer */}
+      <Modal 
+        isOpen={deleteModal} 
+        onClose={() => setDeleteModal(false)} 
+        title="Confirmer la suppression" 
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Voulez-vous vraiment supprimer le produit{' '}
+            <strong className="text-gray-900">{selected?.name}</strong> ?
+          </p>
+          
+          {/* ℹ️ Info générale sur la logique de suppression */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-xs text-blue-700">
+              <strong>💡 Comment ça marche :</strong>
+              <br />
+              • Si le produit n'a <strong>jamais été utilisé</strong> → Suppression définitive (même avec stock)
+              <br />
+              • Si le produit a un <strong>historique</strong> (ventes, avaries, mouvements) → Archivage (stock doit être à 0)
+            </p>
+          </div>
+          
+          {/* ⚠️ Alerte si stock restant (affiché dynamiquement après tentative) */}
+          {/* On ne peut pas savoir à l'avance si le produit a un historique, 
+              donc on laisse le backend gérer l'erreur */}
+        </div>
+        
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="ghost" onClick={() => setDeleteModal(false)}>
+            Annuler
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={handleDelete} 
+            loading={saving}
+          >
+            Supprimer
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

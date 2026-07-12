@@ -39,7 +39,7 @@ interface CaisseData {
   nbTransactionsMois: number;
   sales: any[];
   expenses: any[];
-  totalCreditToday: number;
+  creditNetToday: number;
 }
 
 export default function Caisse() {
@@ -192,7 +192,7 @@ export default function Caisse() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Crédits en cours</p>
-                  <p className="font-bold text-yellow-600">{formatAmount(data.totalCreditToday)} GNF</p>
+                  <p className="font-bold text-yellow-600">{formatAmount(data.creditNetToday)} GNF</p>
                 </div>
               </div>
             </div>
