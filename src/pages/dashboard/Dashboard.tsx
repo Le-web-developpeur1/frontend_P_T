@@ -151,7 +151,7 @@ export default function Dashboard() {
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Solde Disponible</p>
         </div>
         <p className="text-2xl font-extrabold text-green-600 mb-2">
-          {formatAmount((caisse?.soldeCaisse || 0) + (banque?.soldeBanque || 0))} <span className="text-sm font-bold">GNF</span>
+          {formatAmount(caisse?.soldeCaisse || 0)} <span className="text-sm font-bold">GNF</span>
         </p>
         {/* <div className="space-y-1">
           <div className="flex justify-between items-center">
