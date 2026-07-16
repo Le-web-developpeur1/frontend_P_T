@@ -32,6 +32,10 @@ interface CaisseReport {
   totalCredit: number;
 }
 
+interface BanqueReport {
+  soldeBanque: number;
+}
+
 interface MonthlyReport {
   totalSales: number;
   totalExpenses: number;
@@ -42,7 +46,7 @@ interface MonthlyReport {
 export default function Dashboard() {
   const [daily, setDaily]       = useState<DailyReport | null>(null);
   const [caisse, setCaisse]     = useState<CaisseReport | null>(null);
-  const [banque, setBanque]     = useState<any>(null);
+  const [banque, setBanque]     = useState<BanqueReport | null>(null);
   const [monthly, setMonthly]   = useState<MonthlyReport | null>(null);
   const [lowStock, setLowStock] = useState<any[]>([]);
   const [clients, setClients]   = useState<any[]>([]);
@@ -105,102 +109,89 @@ export default function Dashboard() {
       </div>
 
       {/* ── 4 cartes du haut ── */}
-      {/* ── 4 cartes du haut — même ligne ── */}
-<div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-{/* Carte 1 — Total Ventes (2 colonnes sur 5) */}
-<div className="lg:col-span-2 bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-  <div className="flex items-center gap-2 mb-2">
-    <div className="bg-blue-50 p-2 rounded-xl">
-      <FiShoppingCart className="text-blue-600" size={16} />
-    </div>
-    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Ventes</p>
-    <p className="text-2xl font-extrabold ml-5 text-blue-900 mb-2">
-      {formatAmount(caisse?.totalVentes || 0)} <span className="text-sm font-bold">GNF</span>
-    </p>
-  </div>
-  <div className="grid grid-cols-2 gap-1.5">
-    <div className="bg-blue-50 rounded-lg px-2 py-1.5">
-      <p className="text-xs text-gray-400">Comptant</p>
-      <p className="text-xs font-bold text-blue-700">{formatAmount(caisse?.totalComptant || 0)}</p>
-    </div>
-    <div className="bg-cyan-50 rounded-lg px-2 py-1.5">
-      <p className="text-xs text-gray-400">Virement</p>
-      <p className="text-xs font-bold text-cyan-700">{formatAmount(banque?.totalVentesVirement || 0)}</p>
-    </div>
-    <div className="bg-red-50 rounded-lg px-2 py-1.5">
-      <p className="text-xs text-gray-400">Dettes</p>
-      <p className="text-xs font-bold text-red-600">{formatAmount(caisse?.totalCredit || 0)}</p>
-    </div>
-    <div className="bg-green-50 rounded-lg px-2 py-1.5">
-      <p className="text-xs text-gray-400">Remboursé</p>
-      <p className="text-xs font-bold text-green-600">{formatAmount(daily?.totalCreditRembourses || 0)}</p>
-    </div>
-  </div>
-</div>
+      {/* Carte 1 — Total Ventes (2 colonnes sur 5) */}
+      <div className="lg:col-span-2 bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="bg-blue-50 p-2 rounded-xl">
+            <FiShoppingCart className="text-blue-600" size={16} />
+          </div>
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Ventes</p>
+          <p className="text-2xl font-extrabold ml-5 text-blue-900 mb-2">
+            {formatAmount(daily?.totalSales || 0)} <span className="text-sm font-bold">GNF</span>
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-1.5">
+          <div className="bg-blue-50 rounded-lg px-2 py-1.5">
+            <p className="text-xs text-gray-400">Comptant</p>
+            <p className="text-xs font-bold text-blue-700">{formatAmount(daily?.totalCash || 0)}</p>
+          </div>
+          <div className="bg-cyan-50 rounded-lg px-2 py-1.5">
+            <p className="text-xs text-gray-400">Virement</p>
+            <p className="text-xs font-bold text-cyan-700">{formatAmount(daily?.totalVirement || 0)}</p>
+          </div>
+          <div className="bg-red-50 rounded-lg px-2 py-1.5">
+            <p className="text-xs text-gray-400">Dettes</p>
+            <p className="text-xs font-bold text-red-600">{formatAmount(daily?.totalCredit || 0)}</p>
+          </div>
+          <div className="bg-green-50 rounded-lg px-2 py-1.5">
+            <p className="text-xs text-gray-400">Remboursé</p>
+            <p className="text-xs font-bold text-green-600">{formatAmount(daily?.creditRembourseToday || 0)}</p>
+          </div>
+        </div>
+      </div>
 
-{/* Carte 2 — Solde disponible */}
-<div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-  <div className="flex items-center gap-2 mb-2">
-    <div className="bg-green-50 p-2 rounded-xl">
-      <FiDollarSign className="text-green-600" size={16} />
-    </div>
-    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Solde Disponible</p>
-  </div>
-  <p className="text-2xl font-extrabold text-green-600 mb-2">
-    {formatAmount((caisse?.soldeCaisse || 0) + (banque?.soldeBanque || 0))} <span className="text-sm font-bold">GNF</span>
-  </p>
-  <div className="space-y-1">
-    <div className="flex justify-between items-center">
-      <span className="text-xs text-gray-400">Caisse</span>
-      <span className="text-xs font-bold text-gray-600">{formatAmount(caisse?.soldeCaisse || 0)}</span>
-    </div>
-    <div className="flex justify-between items-center">
-      <span className="text-xs text-gray-400">Banque</span>
-      <span className="text-xs font-bold text-gray-600">{formatAmount(banque?.soldeBanque || 0)}</span>
-    </div>
-  </div>
-</div>
+      {/* Carte 2 — Solde disponible */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="bg-green-50 p-2 rounded-xl">
+            <FiDollarSign className="text-green-600" size={16} />
+          </div>
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Solde Disponible</p>
+        </div>
+        <p className="text-2xl font-extrabold text-green-600 mb-2">
+          {formatAmount((caisse?.soldeCaisse || 0) + (banque?.soldeBanque || 0))} <span className="text-sm font-bold">GNF</span>
+        </p>
+        {/* <div className="space-y-1">
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-400">Caisse</span>
+            <span className="text-xs font-bold text-gray-600">{formatAmount(caisse?.soldeCaisse || 0)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-400">Banque</span>
+            <span className="text-xs font-bold text-gray-600">{formatAmount(banque?.soldeBanque || 0)}</span>
+          </div>
+        </div> */}
+      </div>
 
-{/* Carte 3 — Crédits remboursés */}
-<div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-  <div className="flex items-center gap-2 mb-2">
-    <div className="bg-yellow-50 p-2 rounded-xl">
-      <FiCheckCircle className="text-yellow-600" size={16} />
-    </div>
-    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Crédits Remboursés</p>
-  </div>
-  <p className="text-2xl font-extrabold text-yellow-600 mb-2">
-    {formatAmount(daily?.totalCreditRembourses || 0)} <span className="text-sm font-bold">GNF</span>
-  </p>
-  <div className="space-y-1">
-    <div className="flex justify-between items-center">
-      <span className="text-xs text-gray-400">Aujourd'hui</span>
-      <span className="text-xs font-bold text-green-600">{formatAmount(daily?.creditRembourseToday || 0)}</span>
-    </div>
-  </div>
-</div>
+      {/* Carte 3 — Crédits remboursés */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="bg-yellow-50 p-2 rounded-xl">
+            <FiCheckCircle className="text-yellow-600" size={16} />
+          </div>
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Crédits Remboursés</p>
+        </div>
+        <p className="text-2xl font-extrabold text-yellow-600 mb-2">
+          {formatAmount(daily?.creditRembourseToday || 0)} <span className="text-sm font-bold">GNF</span>
+        </p>
+      </div>
 
-{/* Carte 4 — Dépenses */}
-<div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-  <div className="flex items-center gap-2 mb-2">
-    <div className="bg-red-50 p-2 rounded-xl">
-      <FiAlertTriangle className="text-red-500" size={16} />
-    </div>
-    <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Dépenses</p>
-  </div>
-  <p className="text-2xl font-extrabold text-red-600 mb-2">
-    {formatAmount(caisse?.totalDepenses || 0)} <span className="text-sm font-bold">GNF</span>
-  </p>
-  <div className="space-y-1">
-    <div className="flex justify-between items-center">
-      <span className="text-xs text-gray-400">Opérationnel</span>
-      <span className="text-xs font-bold text-red-600">{formatAmount(caisse?.totalDepenses || 0)}</span>
-    </div>
-  </div>
-</div>
+      {/* Carte 4 — Dépenses */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="bg-red-50 p-2 rounded-xl">
+            <FiAlertTriangle className="text-red-500" size={16} />
+          </div>
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Dépenses</p>
+        </div>
+        <p className="text-2xl font-extrabold text-red-600 mb-2">
+          {formatAmount(daily?.totalExpenses || 0)} <span className="text-sm font-bold">GNF</span>
+        </p>
+      </div>
 
-</div>
+      </div>
 
       {/* ── Graphique mensuel + résumé ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

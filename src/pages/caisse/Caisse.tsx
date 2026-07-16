@@ -39,7 +39,9 @@ interface CaisseData {
   nbTransactionsMois: number;
   sales: any[];
   expenses: any[];
+  totalCreditToday: number;
   creditNetToday: number;
+  remboursementsDettesDuJour: number;
 }
 
 export default function Caisse() {
@@ -123,9 +125,8 @@ export default function Caisse() {
         <div className="bg-[#1A2B5F] rounded-2xl p-5 shadow-lg col-span-2 lg:col-span-1">
           <p className="text-white/70 text-xs font-medium mb-1">SOLDE EN CAISSE</p>
           <p className="text-3xl font-extrabold text-[#D4A017]">
-            {formatAmount(data.soldeAujourdhui)} <span className="text-lg">GNF</span>
+            {formatAmount(data.soldeCaisse)} <span className="text-lg">GNF</span>
           </p>
-          <p className="text-white/40 text-xs mt-1">Encaissé — Dépenses</p>
         </div>
 
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200">
