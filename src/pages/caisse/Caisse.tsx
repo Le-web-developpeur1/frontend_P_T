@@ -204,10 +204,10 @@ export default function Caisse() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Avances</p>
-                  <p className="font-bold text-green-600">{formatAmount(daily.totalAcomptes)} GNF</p>
+                  <p className="font-bold text-green-600">{formatAmount(daily?.totalAcomptes || 0)} GNF</p>
                 </div>
               </div>
-            </div>
+            </div>  
 
             <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-xl">
               <div className="flex items-center gap-3">
@@ -216,7 +216,7 @@ export default function Caisse() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Crédits en cours</p>
-                  <p className="font-bold text-yellow-600">{formatAmount(daily.totalCredit)} GNF</p>
+                  <p className="font-bold text-yellow-600">{formatAmount(daily?.totalCredit || 0)} GNF</p>
                 </div>
               </div>
             </div>
