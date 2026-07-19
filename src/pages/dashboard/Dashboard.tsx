@@ -20,6 +20,7 @@ interface DailyReport {
   totalDettesExistantes: number;
   netProfit: number;
   salesCount: number;
+  totalAcomptes: number;
 }
 
 interface CaisseReport {
@@ -138,7 +139,7 @@ export default function Dashboard() {
           </div>
           <div className="bg-green-50 rounded-lg px-2 py-1.5">
             <p className="text-xs text-gray-400">Avances</p>
-            <p className="text-xs font-bold text-green-600">{formatAmount(caisse?.acomptesToday || 0)}</p>
+            <p className="text-xs font-bold text-green-600">{formatAmount(daily?.totalAcomptes || 0)}</p>
           </div>
         </div>
       </div>

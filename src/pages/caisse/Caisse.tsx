@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getCaisseReport } from '../../api/reportAPI';
+import { getCaisseReport, getDailyReport } from '../../api/reportAPI';
 import { addCashIn } from '../../api/cashInAPI';
 import { formatAmount } from '../../utils/formatAmount';
 import toast from 'react-hot-toast';
@@ -46,8 +46,14 @@ interface CaisseData {
   acomptesToday: number;
 }
 
+interface DailyData {
+  totalAcomptes: number;
+  totalCredit: number;
+}
+
 export default function Caisse() {
   const [data, setData]             = useState<CaisseData | null>(null);
+  const [daily, setDaily]            = useState<DailyData | null>(null);
   const [loading, setLoading]       = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
@@ -61,8 +67,12 @@ export default function Caisse() {
   const fetchData = async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
     try {
-      const res = await getCaisseReport();
-      setData(res.data);
+      const [c, d] = await Promise.all([
+        getCaisseReport(),
+        getDailyReport(),
+      ]);
+      setData(c.data);
+      setDaily(d.data)
     } catch { toast.error('Erreur chargement caisse'); }
     finally { setLoading(false); setRefreshing(false); }
   };
@@ -194,7 +204,7 @@ export default function Caisse() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Avances</p>
-                  <p className="font-bold text-green-600">{formatAmount(data.acomptesToday)} GNF</p>
+                  <p className="font-bold text-green-600">{formatAmount(daily.totalAcomptes)} GNF</p>
                 </div>
               </div>
             </div>
@@ -206,7 +216,7 @@ export default function Caisse() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Crédits en cours</p>
-                  <p className="font-bold text-yellow-600">{formatAmount(data.creditNetToday)} GNF</p>
+                  <p className="font-bold text-yellow-600">{formatAmount(daily.totalCredit)} GNF</p>
                 </div>
               </div>
             </div>
