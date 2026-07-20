@@ -249,7 +249,7 @@ export default function Capital() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         {/* Détail caisse */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+        {/* <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
           <h3 className="text-sm font-bold text-blue-900 mb-4">Détail de la caisse</h3>
           <div className="space-y-3">
             {[
@@ -271,10 +271,10 @@ export default function Capital() {
               <span className="text-sm font-bold text-blue-900">{formatAmount(data.caisse)} GNF</span>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Infos générales */}
-        <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
+        {/* <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200">
           <h3 className="text-sm font-bold text-blue-900 mb-4">Informations générales</h3>
           <div className="space-y-3">
             {[
@@ -289,7 +289,7 @@ export default function Capital() {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
