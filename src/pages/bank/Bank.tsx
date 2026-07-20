@@ -272,7 +272,7 @@ export default function Bank() {
           </div>
 
           <Input label="Montant (GNF)" type="number" value={transferForm.amount}
-            onChange={(e) => setTransferForm({ ...transferForm, amount: Number(e.target.value) })} />
+            onChange={(e) => setTransferForm({ ...transferForm, amount: Number(e.target.value) })}/>
 
           <Input label="Note (optionnel)" value={transferForm.note}
             onChange={(e) => setTransferForm({ ...transferForm, note: e.target.value })}

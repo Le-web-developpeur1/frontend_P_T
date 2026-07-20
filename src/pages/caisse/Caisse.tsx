@@ -44,6 +44,7 @@ interface CaisseData {
   remboursementsDettesDuJour: number;
   creditPaidToday: number;
   acomptesToday: number;
+  transfertsCaisseBanqueMois: number;
 }
 
 interface DailyData {
@@ -258,14 +259,15 @@ export default function Caisse() {
           </div>
           <div className="space-y-3">
             {[
-              { label: 'Encaissé',                value: data.encaisseMois,              color: 'text-green-600',  sign: '+' },
-              { label: 'Dépenses opérationnelles', value: data.depensesMois,              color: 'text-red-600',    sign: '−' },
-              { label: 'Paiements fournisseurs',   value: data.paiementsFournisseursMois, color: 'text-orange-600', sign: '−' },
-            ].map(({ label, value, color, sign }) => (
+              { label: 'Encaissé',                value: data.encaisseMois,              color: 'text-green-600' },
+              { label: 'Dépenses opérationnelles', value: data.depensesMois,              color: 'text-red-600',    },
+              { label: 'Paiements fournisseurs',   value: data.paiementsFournisseursMois, color: 'text-red-600', },
+              { label: 'Transfert Caisse - Banque',   value: data.transfertsCaisseBanqueMois, color: 'text-red-600', },
+            ].map(({ label, value, color }) => (
               <div key={label} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                 <span className="text-sm text-gray-600">{label}</span>
                 <span className={`text-sm font-semibold ${color}`}>
-                  {sign} {formatAmount(value)} GNF
+                  {formatAmount(value)} GNF
                 </span>
               </div>
             ))}
