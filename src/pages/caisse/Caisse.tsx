@@ -291,7 +291,7 @@ export default function Caisse() {
         <div className="space-y-4">
           <div className="bg-green-50 border border-green-200 rounded-xl p-3">
             <p className="text-sm text-gray-600">
-              Solde actuel : <strong className="text-green-600">{formatAmount(data.soldeAujourdhui)} GNF</strong>
+              Solde actuel : <strong className="text-green-600">{formatAmount(data.soldeCaisse)} GNF</strong>
             </p>
           </div>
           <Input label="Montant (GNF)" type="number" value={cashInAmount}
