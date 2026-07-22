@@ -9,7 +9,7 @@ import { useSystem } from '../../context/SystemContext';
 import { useAuth } from '../../context/AuthContext';
 
 const allLinks = [
-  { to: '/',          icon: FiGrid,         label: 'Dashboard',     roles: ['admin', 'gestionnaire']             },
+  { to: '/',          icon: FiGrid,         label: 'Dashboard',     roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/capital',   icon: FiPieChart,     label: 'Capital',       roles: ['admin', 'gestionnaire']             },
   { to: '/caisse',    icon: FiMonitor,      label: 'Caisse',        roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/bank', icon: FiDatabase,          label: 'Banque',        roles: ['admin', 'gestionnaire']             },
