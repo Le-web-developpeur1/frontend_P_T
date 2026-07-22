@@ -56,6 +56,9 @@ export default function Products() {
   const [search, setSearch]           = useState<string>('');
   const [tauxSysteme, setTauxSysteme] = useState<number>(10);
 
+  const userString = localStorage.getItem('user');
+  const user = userString ? JSON.parse(userString) : null;
+
   const fetchProducts = async () => {
     try {
       const res = await getProducts();
@@ -238,8 +241,10 @@ export default function Products() {
         )}
       </div>
     )},
-    { header: 'Prix achat/Carton',  render: (p: Product) => <span>{formatAmount(p.purchasePricePerCarton)} GNF</span> },
-    { header: 'Prix vente/Carton', render: (p: Product) => <span>{formatAmount(p.pricePerCarton)} GNF</span> },
+    ...(user?.role === 'admin' ? [{
+      header: 'Prix achat/Carton',
+      render: (p: Product) => <span>{formatAmount(p.purchasePricePerCarton)} GNF</span>
+    }] : []),    { header: 'Prix vente/Carton', render: (p: Product) => <span>{formatAmount(p.pricePerCarton)} GNF</span> },
     { header: 'Statut', render: (p: Product) => (
       <Badge
         label={p.stockCartons <= p.alertThreshold ? 'Stock bas' : 'OK'}
@@ -256,10 +261,12 @@ export default function Products() {
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Modifier">
           <FiEdit2 size={15} />
         </button>
-        <button onClick={() => openDelete(p)}
-          className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Supprimer">
-          <FiTrash2 size={15} />
-        </button>
+        {user.role === 'admin' && (
+          <button onClick={() => openDelete(p)}
+            className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Supprimer">
+            <FiTrash2 size={15} />
+          </button>
+        )}
       </div>
     )},
   ];
@@ -272,9 +279,11 @@ export default function Products() {
           <h1 className="text-2xl font-bold text-blue-900">Produits</h1>
           <p className="text-gray-500 text-sm">{products.length} produit(s) au total</p>
         </div>
-        <Button onClick={openCreate} variant="primary">
-          <FiPlus size={18} /> Nouveau produit
-        </Button>
+        {user.role === 'admin' && (
+          <Button onClick={openCreate} variant="primary">
+            <FiPlus size={18} /> Nouveau produit
+          </Button>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
