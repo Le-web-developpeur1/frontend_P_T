@@ -17,7 +17,7 @@ const allLinks = [
   { to: '/products',  icon: FiPackage,      label: 'Produits',      roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/clients',   icon: FiUsers,        label: 'Clients',       roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/credits',   icon: FiCreditCard,   label: 'Crédits',       roles: ['admin', 'gestionnaire', 'caissier'] },
-  { to: '/suppliers', icon: FiTruck,        label: 'Fournisseurs',  roles: ['admin', 'gestionnaire', 'caissier'] },
+  { to: '/suppliers', icon: FiTruck,        label: 'Fournisseurs',  roles: ['admin', 'gestionnaire',           ] },
   { to: '/invoices',  icon: FiFileText,     label: 'Factures',      roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/expenses',  icon: FiDollarSign,   label: 'Dépenses',      roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/damages',   icon: FiAlertOctagon, label: 'Avaries',       roles: ['admin', 'gestionnaire', 'caissier'] },

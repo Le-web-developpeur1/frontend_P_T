@@ -305,42 +305,45 @@ export default function Products() {
           <Input label="Nombre Total (cartons)" name="stockCartons" type="number" value={form.stockCartons} onChange={handleChange} />
 
           {/* ── Devise d'achat ─────────────────────────── */}
-          <div className="col-span-2">
-            <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-blue-900">Prix d'achat par carton</p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Devise :</span>
-                  <select name="deviseAchat" value={form.deviseAchat} onChange={handleChange}
-                    className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900 bg-white">
-                    <option value="FG">Franc Guinéen (FG)</option>
-                    <option value="FCFA">Franc CFA (FCFA)</option>
-                  </select>
-                </div>
-              </div>
-
-              {form.deviseAchat === 'FG' ? (
-                <Input label="Prix d'achat par carton (FG)" name="purchasePricePerCarton"
-                  type="number" value={form.purchasePricePerCarton} onChange={handleChange} />
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <Input label="Prix d'achat (FCFA)" name="purchasePriceFCFA"
-                    type="number" value={form.purchasePriceFCFA} onChange={handleChange} />
-                  <Input label="Taux de change (1 FCFA = ? FG)" name="tauxFCFA"
-                    type="number" value={form.tauxFCFA} onChange={handleChange} />
-                  <div className="col-span-2">
-                    <label className="text-sm font-medium text-gray-700">Équivalent en FG (calculé automatiquement)</label>
-                    <div className="mt-1 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-bold text-blue-900">
-                      {formatAmount(form.purchasePricePerCarton)} FG
-                      <span className="text-xs font-normal text-blue-500 ml-2">
-                        ({formatAmount(form.purchasePriceFCFA)} FCFA × {form.tauxFCFA})
-                      </span>
-                    </div>
+          {user?.role === 'admin' && (
+            <div className="col-span-2">
+              <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-blue-900">Prix d'achat par carton</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-500">Devise :</span>
+                    <select name="deviseAchat" value={form.deviseAchat} onChange={handleChange}
+                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900 bg-white">
+                      <option value="FG">Franc Guinéen (FG)</option>
+                      <option value="FCFA">Franc CFA (FCFA)</option>
+                    </select>
                   </div>
                 </div>
-              )}
+
+                { form.deviseAchat === 'FG' ? (
+                  <Input label="Prix d'achat par carton (FG)" name="purchasePricePerCarton"
+                    type="number" value={form.purchasePricePerCarton} onChange={handleChange} />
+                  ) : (
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input label="Prix d'achat (FCFA)" name="purchasePriceFCFA"
+                        type="number" value={form.purchasePriceFCFA} onChange={handleChange} />
+                      <Input label="Taux de change (1 FCFA = ? FG)" name="tauxFCFA"
+                        type="number" value={form.tauxFCFA} onChange={handleChange} />
+                      <div className="col-span-2">
+                        <label className="text-sm font-medium text-gray-700">Équivalent en FG (calculé automatiquement)</label>
+                        <div className="mt-1 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-bold text-blue-900">
+                          {formatAmount(form.purchasePricePerCarton)} FG
+                          <span className="text-xs font-normal text-blue-500 ml-2">
+                            ({formatAmount(form.purchasePriceFCFA)} FCFA × {form.tauxFCFA})
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                }
+              </div>
             </div>
-          </div>
+          )}
 
           <Input label="Prix de vente par carton (FG) *" name="pricePerCarton" type="number" value={form.pricePerCarton} onChange={handleChange} required className="col-span-2" />
           <Input label="Seuil d'alerte (cartons)" name="alertThreshold" type="number" value={form.alertThreshold} onChange={handleChange} className="col-span-2" />
