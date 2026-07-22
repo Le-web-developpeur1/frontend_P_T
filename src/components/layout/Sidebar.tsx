@@ -21,7 +21,7 @@ const allLinks = [
   { to: '/invoices',  icon: FiFileText,     label: 'Factures',      roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/expenses',  icon: FiDollarSign,   label: 'Dépenses',      roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/damages',   icon: FiAlertOctagon, label: 'Avaries',       roles: ['admin', 'gestionnaire', 'caissier'] },
-  { to: '/employees', icon: FiBriefcase,    label: 'Employés',      roles: ['admin', 'gestionnaire']             },
+  { to: '/employees', icon: FiBriefcase,    label: 'Employés',      roles: ['admin', 'gestionnaire', 'caissier'] },
   { to: '/reports',   icon: FiBarChart2,    label: 'Rapports',      roles: ['admin', 'gestionnaire'] },
   { to: '/users',     icon: FiUserPlus,     label: 'Utilisateurs',  roles: ['admin']                             },
   { to: '/settings',  icon: FiSettings,     label: 'Paramètres',    roles: ['admin', 'gestionnaire', 'caissier'] },
