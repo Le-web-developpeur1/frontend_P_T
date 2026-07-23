@@ -264,6 +264,7 @@ export default function Caisse() {
               { label: 'Encaissé',                value: data.encaisseMois,              color: 'text-green-600' },
               { label: 'Dépenses opérationnelles', value: data.depensesMois,              color: 'text-red-600',    },
               { label: 'Paiements fournisseurs',   value: data.paiementsFournisseursMois, color: 'text-red-600', },
+              { label: 'Transfert Caisse - Banque',   value: data.transfertsCaisseBanqueMois, color: 'text-red-600', },
             ].map(({ label, value, color }) => (
               <div key={label} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                 <span className="text-sm text-gray-600">{label}</span>
