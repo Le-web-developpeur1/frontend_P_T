@@ -271,8 +271,8 @@ export default function Reports() {
                         <td className="px-4 py-2">{p.stockCartons}</td>
                         <td className="px-4 py-2">{formatAmount(p.purchasePricePerCarton)} GNF</td>
                         <td className="px-4 py-2">{formatAmount(p.pricePerCarton)} GNF</td>
-                        <td className="px-4 py-2 font-semibold text-blue-900">{formatAmount(data.valeurStockAchat)} GNF</td>
-                        <td className="px-4 py-2 font-semibold text-blue-900">{formatAmount(data.valeurStockVente)} GNF</td>
+                        <td className="px-4 py-2 font-semibold text-blue-900">{formatAmount(p.purchasePricePerCarton * p.stockCartons)} GNF</td>
+                        <td className="px-4 py-2 font-semibold text-blue-900">{formatAmount(p.pricePerCarton * p.stockCartons)} GNF</td>
                         <td className="px-4 py-2">
                           <Badge label={p.stockCartons <= p.alertThreshold ? 'Stock bas' : 'OK'}
                             variant={p.stockCartons <= p.alertThreshold ? 'warning' : 'success'} />
