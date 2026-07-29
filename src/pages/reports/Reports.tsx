@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   getDailyReport, getMonthlyReport, getStockReport, getDebtReport,
   getSupplierReport, exportReport, getCaisseMovements, getBankMovements,
-  exportCaisseReport, exportBankReport
+  exportCaisseReport, exportBankReport, exportExpensesReport, getExpensesReport
 } from '../../api/reportAPI';
 import { formatAmount } from '../../utils/formatAmount';
 import Button from '../../components/common/Button';
@@ -18,9 +18,10 @@ const tabs = [
   { id: 'suppliers', label: 'Fournisseurs' },
   { id: 'caisse',    label: 'Caisse'    },
   { id: 'banque',    label: 'Banque'    },
+  { id: 'expenses',  label: 'Dépenses'    },
 ];
 
-type TabId = 'daily' | 'monthly' | 'stock' | 'debts' | 'suppliers' | 'caisse' | 'banque';
+type TabId = 'daily' | 'monthly' | 'stock' | 'debts' | 'suppliers' | 'caisse' | 'banque' | 'expenses';
 
 export default function Reports() {
   const [activeTab, setActiveTab] = useState<TabId>('daily');
@@ -47,6 +48,7 @@ export default function Reports() {
       if (activeTab === 'suppliers') res = await getSupplierReport();
       if (activeTab === 'caisse')    res = await getCaisseMovements(startDate && endDate ? { startDate, endDate } : {});
       if (activeTab === 'banque')    res = await getBankMovements(startDate && endDate ? { startDate, endDate } : {});
+      if (activeTab === 'expenses')  res = await getExpensesReport(startDate && endDate ? { startDate, endDate } : {});
       setData(res.data);
     } catch { toast.error('Erreur chargement rapport'); }
     finally { setLoading(false); }
@@ -62,7 +64,10 @@ export default function Reports() {
         res = await exportCaisseReport(format, dateParams);
       } else if (activeTab === 'banque') {
         res = await exportBankReport(format, dateParams);
-      } else {
+      } else if (activeTab === 'expenses') {
+        res = await exportExpensesReport(format, dateParams);
+      }
+      else {
         const params = activeTab === 'daily' ? { date } : activeTab === 'monthly' ? { month, year } : {};
         res = await exportReport(activeTab, format, params);
       }
@@ -119,7 +124,7 @@ export default function Reports() {
                 className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900" />
             </>
           )}
-          {(activeTab === 'caisse' || activeTab === 'banque') && (
+          {(activeTab === 'caisse' || activeTab === 'banque' || activeTab === 'expenses') && (
             <>
               <div className="flex items-center gap-2">
                 <label className="text-xs text-gray-500">Du</label>
@@ -139,7 +144,7 @@ export default function Reports() {
           </Button>
           {data && (
             <div className="flex gap-2 ml-auto">
-              {(activeTab === 'caisse' || activeTab === 'banque') ? (
+              {(activeTab === 'caisse' || activeTab === 'banque' || activeTab === 'expenses') ? (
                 <>
                   <Button onClick={() => handleExport('pdf')} variant="ghost" size="sm" loading={exporting}>
                     <FiDownload size={14} /> PDF
@@ -480,6 +485,59 @@ export default function Reports() {
               </div>
             </>
           )}
+
+          {/* ── Dépenses ── */}
+{activeTab === 'expenses' && (
+  <>
+    {/* Résumé */}
+    <div className="grid grid-cols-2 gap-4">
+      <div className="bg-gray-50 rounded-xl p-4">
+        <p className="text-xs text-gray-500">Nombre de dépenses</p>
+        <p className="text-lg font-bold text-gray-700">{data.expenses?.length || 0}</p>
+      </div>
+      <div className="bg-red-50 rounded-xl p-4">
+        <p className="text-xs text-gray-500">Total dépenses</p>
+        <p className="text-lg font-bold text-red-600">{formatAmount(data.totalDepenses || 0)} GNF</p>
+      </div>
+    </div>
+
+    {/* Liste des dépenses */}
+    <div className="overflow-x-auto rounded-xl border border-gray-200">
+      <table className="w-full text-sm">
+        <thead className="bg-blue-900 text-white">
+          <tr>
+            {['Date', 'Titre', 'Catégorie', 'Description', 'Montant'].map(h => (
+              <th key={h} className="px-4 py-2.5 text-left font-medium">{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.expenses?.length === 0 ? (
+            <tr>
+              <td colSpan={5} className="text-center py-8 text-gray-400">Aucune dépense</td>
+            </tr>
+          ) : data.expenses?.map((e: any, i: number) => (
+            <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+              <td className="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">
+                {new Date(e.date).toLocaleDateString('fr-FR')}
+              </td>
+              <td className="px-4 py-2.5 font-semibold text-gray-700">{e.title}</td>
+              <td className="px-4 py-2.5">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                  {e.category || '—'}
+                </span>
+              </td>
+              <td className="px-4 py-2.5 text-gray-600">{e.description || '—'}</td>
+              <td className="px-4 py-2.5 font-bold text-red-600 whitespace-nowrap">
+                {formatAmount(e.amount)} GNF
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </>
+)}
 
         </div>
       )}

@@ -15,8 +15,12 @@ export const exportReport = (type, format, params) =>
 export const getCaisseMovements = (params) => api.get('/reports/caisse-movements', { params });
 export const getBankMovements   = (params) => api.get('/reports/bank-movements',   { params });
 
+export const getExpensesReport = async (params) => api.get(`/reports/expenses`, { params });;
+
 // ── Exports caisse et banque ──
 export const exportCaisseReport = (format, params) =>
   api.get('/reports/export/caisse', { params: { format, ...params }, responseType: 'blob' });
 export const exportBankReport = (format, params) =>
   api.get('/reports/export/banque', { params: { format, ...params }, responseType: 'blob' });
+export const exportExpensesReport = (format, params) =>
+  api.get('/reports/export/expenses', { params: { format, ...params }, responseType: 'blob' });

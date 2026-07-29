@@ -11,9 +11,11 @@ declare module '../../api/reportAPI' {
   export function getCaisseReport(): Promise<any>;
   export function exportReport(type: string, format: string, params?: any): Promise<any>;
   export function getCaisseMovements(params?: any): Promise<any>;
+  export function getExpensesReport(params?: { startDate?: string; endDate?: string }): Promise<any>;
   export function getBankMovements(params?: any): Promise<any>;
   export function exportCaisseReport(format: string, params?: any): Promise<any>;
   export function exportBankReport(format: string, params?: any): Promise<any>;
+  export function exportExpensesReport(format: string, params?: any): Promise<any>;
 }
 
 declare module '../../api/productAPI' {
@@ -158,7 +160,8 @@ declare module '../../components/common/Button' {
 
 declare module '../../components/common/Input' {
   import { InputHTMLAttributes } from 'react';
-  interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+  import { getExpensesReport } from './../api/reportAPI';
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
     error?: string;
   }
