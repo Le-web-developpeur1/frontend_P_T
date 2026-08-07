@@ -134,12 +134,12 @@ export default function Products() {
     }
     setSaving(true);
     try {
-      const { deviseAchat, purchasePriceFCFA, tauxFCFA, ...dataToSend } = form;
+      const { deviseAchat, purchasePriceFCFA, tauxFCFA, stockCartons, ...dataToSend } = form;
       if (selected) {
         await updateProduct(selected._id, dataToSend);
         toast.success('Produit mis à jour !');
       } else {
-        await createProduct(dataToSend);
+        await createProduct({...dataToSend, stockCartons});
         toast.success('Produit créé !');
       }
       setModalOpen(false);
@@ -302,8 +302,7 @@ export default function Products() {
         <div className="grid grid-cols-2 gap-4">
           <Input label="Nom du produit *" name="name" value={form.name} onChange={handleChange} required className="col-span-2" />
           <Input label="Catégorie" name="category" value={form.category} onChange={handleChange} />
-          <Input label="Nombre Total (cartons)" name="stockCartons" type="number" value={form.stockCartons} onChange={handleChange} />
-
+          {!selected && ( <Input label="Nombre Total (cartons)" name="stockCartons" type="number" value={form.stockCartons} onChange={handleChange} /> )}
           {/* ── Devise d'achat ─────────────────────────── */}
           {user?.role === 'admin' && (
             <div className="col-span-2">
