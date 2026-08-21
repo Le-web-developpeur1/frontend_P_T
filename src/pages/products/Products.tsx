@@ -32,6 +32,7 @@ interface StockForm {
   type: string;
   quantityCartons: number;
   reason: string;
+  purchasePrice?: number;
 }
 
 const emptyForm: ProductForm = {
@@ -41,7 +42,7 @@ const emptyForm: ProductForm = {
   deviseAchat: 'FG', purchasePriceFCFA: 0, tauxFCFA: 10,
 };
 
-const emptyStockForm: StockForm = { type: 'entrée', quantityCartons: 0, reason: 'achat' };
+const emptyStockForm: StockForm = { type: 'entrée', quantityCartons: 0, reason: 'achat', purchasePrice: undefined };
 
 export default function Products() {
   const [products, setProducts]       = useState<Product[]>([]);
@@ -155,7 +156,19 @@ export default function Products() {
     if (!selected) return;
     setSaving(true);
     try {
-      await adjustStock(selected._id, stockForm);
+      //Préparer les données
+      const payload: any = {
+        type: stockForm.type,
+        quantityCartons: stockForm.quantityCartons,
+        reason: stockForm.reason
+      };
+
+      //Ajouter le pruchasePrice seulement si type = "entrée" et prix fourni
+      if (stockForm.type === "entreée" && stockForm.purchasePrice) {
+        payload.purchasePrice = Number(stockForm.purchasePrice);
+      }
+
+      await adjustStock(selected._id, payload);
       toast.success('Stock ajusté !');
       setStockModal(false);
       fetchProducts();
@@ -406,7 +419,50 @@ export default function Products() {
               <option value="ajustement">Ajustement (Définir une valeur exacte)</option>
             </select>
           </div>
-          
+          {/**Affichagage pour modifier le prix d'achat */}
+          {/*NOUVEAU: Prix d'achat (seulement si type = "entrée") */}
+          {stockForm.type === 'entrée' && selected && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Prix d'achat unitaire (optionnel)
+              </label>
+              <input
+                type="number"
+                name="purchasePrice"
+                value={stockForm.purchasePrice || ''}
+                onChange={handleStockChange}
+                placeholder={`Prix actuel: ${formatAmount(selected.purchasePricePerCarton)} GNF`}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900"
+              />
+              <p className="text-xs text-gray-500">
+                <strong>Laissez vide</strong> pour utiliser le prix actuel ({formatAmount(selected.purchasePricePerCarton)} GNF).
+                <br />
+                Sinon, entrez le <strong>nouveau prix d'achat</strong> pour ce lot.
+              </p>
+              
+              {/* Aperçu du CMP si prix saisi */}
+              {stockForm.purchasePrice && stockForm.quantityCartons > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-xs text-blue-700">
+                    <strong>Nouveau Coût Moyen Pondéré (CMP) :</strong>
+                    <br />
+                    {(() => {
+                      const valeurStockActuel = selected.stockCartons * selected.purchasePricePerCarton;
+                      const valeurNouveauLot = stockForm.quantityCartons * Number(stockForm.purchasePrice);
+                      const nouvelleQuantite = selected.stockCartons + stockForm.quantityCartons;
+                      const nouveauCMP = Math.round((valeurStockActuel + valeurNouveauLot) / nouvelleQuantite);
+                      return `${formatAmount(nouveauCMP)} GNF par carton`;
+                    })()}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+
+
+
+
           <div className="flex flex-col gap-1">
             <label className="text-sm font-medium text-gray-700">Raison</label>
             <select 
