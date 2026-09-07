@@ -157,7 +157,6 @@ export default function Suppliers() {
       await recordPurchase(selected._id, {
         totalCartons: purchaseForm.totalCartons,
         montantTotal: purchaseForm.montantTotal,
-        description: purchaseForm.description || 'Achat général',
         montantPaye,
         modePaiement
       });
