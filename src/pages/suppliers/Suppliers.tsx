@@ -23,14 +23,18 @@ interface Supplier extends SupplierForm {
   balance: number;
 }
 
-interface PurchaseItem {
-  libelle: string;
-  quantiteCartons: number;
-  prixUnitaire: number;
+interface SimplePurchaseForm {
+  totalCartons: number;
+  montantTotal: number;
 }
 
+const emptyPurchaseForm: SimplePurchaseForm = { 
+  totalCartons: 0, 
+  montantTotal: 0, 
+};
+
+
 const emptyForm: SupplierForm = { name: '', phone: '', address: '' };
-const emptyItem: PurchaseItem = { libelle: '', quantiteCartons: 0, prixUnitaire: 0 };
 
 export default function Suppliers() {
   const [suppliers, setSuppliers]         = useState<Supplier[]>([]);
@@ -42,7 +46,7 @@ export default function Suppliers() {
   const [detailModal, setDetailModal]     = useState<boolean>(false);
   const [selected, setSelected]           = useState<Supplier | null>(null);
   const [form, setForm]                   = useState<SupplierForm>(emptyForm);
-  const [items, setItems]                 = useState<PurchaseItem[]>([{ ...emptyItem }]);
+  const [purchaseForm, setPurchaseForm] = useState<SimplePurchaseForm>(emptyPurchaseForm);
   const [montantPaye, setMontantPaye]     = useState<number>(0);
   const [modePaiement, setModePaiement]   = useState<string>('comptant');
   const [amount, setAmount]               = useState<string>('');
@@ -64,26 +68,8 @@ export default function Suppliers() {
   useEffect(() => { fetchSuppliers(); }, []);
   useAutoRefresh(fetchSuppliers, 30000);
 
-  // Calcul du montant total de tous les articles
-  const montantTotal = items.reduce((sum, item) =>
-    sum + (Number(item.quantiteCartons) * Number(item.prixUnitaire)), 0
-  );
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleItemChange = (index: number, field: keyof PurchaseItem, value: string) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: field === 'libelle' ? value : Number(value) };
-    setItems(newItems);
-  };
-
-  const addItem = () => setItems([...items, { ...emptyItem }]);
-
-  const removeItem = (index: number) => {
-    if (items.length === 1) { toast.error('Au moins un article requis'); return; }
-    setItems(items.filter((_, i) => i !== index));
-  };
+  setForm({ ...form, [e.target.name]: e.target.value });
 
   const openCreate   = () => { setSelected(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit     = (s: Supplier) => { setSelected(s); setForm({ ...s }); setModalOpen(true); };
@@ -92,7 +78,7 @@ export default function Suppliers() {
 
   const openPurchase = (s: Supplier) => {
     setSelected(s);
-    setItems([{ ...emptyItem }]);
+    setPurchaseForm(emptyPurchaseForm);
     setMontantPaye(0);
     setModePaiement('comptant');
     setPurchaseModal(true);
@@ -145,29 +131,44 @@ export default function Suppliers() {
 
   const handlePurchase = async () => {
     if (!selected) return;
-    // Validation articles
-    for (const item of items) {
-      if (!item.libelle) { toast.error('Renseignez le libellé de chaque article'); return; }
-      if (!item.prixUnitaire || item.prixUnitaire <= 0) { toast.error('Prix unitaire invalide'); return; }
+
+    // Validation
+    if (!purchaseForm.totalCartons || purchaseForm.totalCartons <= 0) {
+      toast.error('Le nombre de cartons doit être supérieur à 0');
+      return;
     }
-    if (montantTotal <= 0) { toast.error('Montant total invalide'); return; }
+    if (!purchaseForm.montantTotal || purchaseForm.montantTotal <= 0) {
+      toast.error('Le montant total doit être supérieur à 0');
+      return;
+    }
+
     // Validation paiement
-    if (montantPaye > montantTotal) {
-      toast.error(`Le montant payé ne peut pas dépasser ${formatAmount(montantTotal)} GNF`);
+    if (montantPaye > purchaseForm.montantTotal) {
+      toast.error(`Le montant payé ne peut pas dépasser ${formatAmount(purchaseForm.montantTotal)} GNF`);
       return;
     }
     if (montantPaye > 0 && !modePaiement) {
       toast.error('Choisissez un mode de paiement');
       return;
     }
+
     setSaving(true);
     try {
-      await recordPurchase(selected._id, { items, montantPaye, modePaiement });
+      await recordPurchase(selected._id, {
+        totalCartons: purchaseForm.totalCartons,
+        montantTotal: purchaseForm.montantTotal,
+        description: purchaseForm.description || 'Achat général',
+        montantPaye,
+        modePaiement
+      });
       toast.success('Achat enregistré !');
       setPurchaseModal(false);
       fetchSuppliers();
-    } catch (err: any) { toast.error(err.response?.data?.message || 'Erreur'); }
-    finally { setSaving(false); }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Erreur');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -266,60 +267,35 @@ export default function Suppliers() {
 
       {/* ── Modal Achat multi-articles ───────────────── */}
       <Modal isOpen={purchaseModal} onClose={() => setPurchaseModal(false)}
-        title={`Enregistrer un achat — ${selected?.name}`} size="xl">
+        title={`Enregistrer un achat — ${selected?.name}`} size="lg">
         <div className="space-y-5">
-
-          {/* Liste des articles */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-blue-900">Articles achetés</p>
-              <button onClick={addItem}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors">
-                <FiPlus size={13} /> Ajouter un article
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {items.map((item, index) => (
-                <div key={index} className="bg-gray-50 rounded-xl p-3 border border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-gray-500">Article {index + 1}</span>
-                    {items.length > 1 && (
-                      <button onClick={() => removeItem(index)}
-                        className="p-1 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors">
-                        <FiX size={13} />
-                      </button>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="col-span-3">
-                      <Input label="Libellé / Description *"
-                        value={item.libelle}
-                        onChange={(e) => handleItemChange(index, 'libelle', e.target.value)}
-                        placeholder="Ex: Maquereau congelé..." />
-                    </div>
-                    <Input label="Quantité (cartons)" type="number"
-                      value={item.quantiteCartons}
-                      onChange={(e) => handleItemChange(index, 'quantiteCartons', e.target.value)} />
-                    <Input label="Prix unitaire (GNF)" type="number"
-                      value={item.prixUnitaire}
-                      onChange={(e) => handleItemChange(index, 'prixUnitaire', e.target.value)} />
-                    <div className="flex flex-col justify-end pb-1">
-                      <p className="text-xs text-gray-500 mb-1">Sous-total</p>
-                      <p className="font-bold text-blue-900">
-                        {formatAmount(item.quantiteCartons * item.prixUnitaire)} GNF
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          
+          {/* Total cartons */}
+          <Input 
+            label="Nombre total de cartons *" 
+            type="number"
+            value={purchaseForm.totalCartons}
+            onChange={(e) => setPurchaseForm({ ...purchaseForm, totalCartons: Number(e.target.value) })}
+            placeholder="0"
+            required
+          />
 
           {/* Montant total */}
+          <Input 
+            label="Montant total de l'achat (GNF) *" 
+            type="number"
+            value={purchaseForm.montantTotal}
+            onChange={(e) => setPurchaseForm({ ...purchaseForm, montantTotal: Number(e.target.value) })}
+            placeholder="0"
+            required
+          />
+
+          {/* Montant total - Résumé */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-700">Montant total de l'achat :</span>
-            <span className="text-xl font-bold text-blue-900">{formatAmount(montantTotal)} GNF</span>
+            <span className="text-xl font-bold text-blue-900">
+              {formatAmount(purchaseForm.montantTotal)} GNF
+            </span>
           </div>
 
           {/* Paiement */}
@@ -349,23 +325,28 @@ export default function Suppliers() {
 
             {/* Montant payé */}
             <div className="space-y-2">
-              <Input label="Montant payé maintenant (GNF)" type="number"
+              <Input 
+                label="Montant payé maintenant (GNF)" 
+                type="number"
                 value={montantPaye}
                 onChange={(e) => {
                   const val = Number(e.target.value);
-                  if (val > montantTotal) {
-                    toast.error(`Maximum : ${formatAmount(montantTotal)} GNF`);
-                    setMontantPaye(montantTotal);
+                  if (val > purchaseForm.montantTotal) {
+                    toast.error(`Maximum : ${formatAmount(purchaseForm.montantTotal)} GNF`);
+                    setMontantPaye(purchaseForm.montantTotal);
                   } else {
                     setMontantPaye(val);
                   }
-                }} />
+                }} 
+              />
               <div className="flex gap-2">
-                <button onClick={() => setMontantPaye(montantTotal)}
+                <button 
+                  onClick={() => setMontantPaye(purchaseForm.montantTotal)}
                   className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-200 transition-colors">
-                  Payer tout ({formatAmount(montantTotal)} GNF)
+                  Payer tout ({formatAmount(purchaseForm.montantTotal)} GNF)
                 </button>
-                <button onClick={() => setMontantPaye(0)}
+                <button 
+                  onClick={() => setMontantPaye(0)}
                   className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors">
                   Ne rien payer
                 </button>
@@ -373,22 +354,20 @@ export default function Suppliers() {
             </div>
 
             {/* Résumé paiement */}
-            {montantTotal > 0 && (
+            {purchaseForm.montantTotal > 0 && (
               <div className="bg-gray-50 rounded-xl p-3 space-y-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Montant total :</span>
-                  <span className="font-semibold">{formatAmount(montantTotal)} GNF</span>
+                  <span className="font-semibold">{formatAmount(purchaseForm.montantTotal)} GNF</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">
-                    Payé {modePaiement === 'virement' ? '(Banque)' : '(Caisse)'} :
-                  </span>
+                  <span className="text-gray-500">Payé {modePaiement === 'virement' ? '(Banque)' : '(Caisse)'} :</span>
                   <span className="font-semibold text-green-600">{formatAmount(montantPaye)} GNF</span>
                 </div>
                 <div className="flex justify-between border-t border-gray-200 pt-1.5">
                   <span className="text-gray-500 font-semibold">Reste dû au fournisseur :</span>
-                  <span className={`font-bold ${montantTotal - montantPaye > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {formatAmount(Math.max(0, montantTotal - montantPaye))} GNF
+                  <span className={`font-bold ${purchaseForm.montantTotal - montantPaye > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {formatAmount(Math.max(0, purchaseForm.montantTotal - montantPaye))} GNF
                   </span>
                 </div>
               </div>
@@ -397,12 +376,13 @@ export default function Suppliers() {
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <Button variant="ghost"     onClick={() => setPurchaseModal(false)}>Annuler</Button>
+          <Button variant="ghost" onClick={() => setPurchaseModal(false)}>Annuler</Button>
           <Button variant="secondary" onClick={handlePurchase} loading={saving}>
             Confirmer l'achat
           </Button>
         </div>
       </Modal>
+
 
       {/* ── Modal Versement ──────────────────────────── */}
       <Modal isOpen={payModal} onClose={() => setPayModal(false)}
@@ -495,7 +475,7 @@ export default function Suppliers() {
               <table className="w-full text-sm">
                 <thead className="bg-blue-900 text-white text-xs">
                   <tr>
-                    {['Date', 'Articles', 'Total', 'Payé', 'Mode', 'Reste', 'Statut'].map(h => (
+                    {['Date', 'Total Carton', 'Total', 'Payé', 'Mode', 'Reste', 'Statut'].map(h => (
                       <th key={h} className="px-3 py-2.5 text-left font-medium whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -507,13 +487,7 @@ export default function Suppliers() {
                     <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                       <td className="px-3 py-2.5 text-xs text-gray-500 whitespace-nowrap">{formatDate(p.createdAt)}</td>
                       <td className="px-3 py-2.5">
-                        <div className="space-y-0.5">
-                          {p.items.map((item: any, j: number) => (
-                            <p key={j} className="text-xs text-gray-600">
-                              {item.libelle} ({item.quantiteCartons} crt × {formatAmount(item.prixUnitaire)} GNF)
-                            </p>
-                          ))}
-                        </div>
+                        <p className="text-xs text-gray-400">{p.totalCartons} cartons</p>
                       </td>
                       <td className="px-3 py-2.5 font-semibold whitespace-nowrap">{formatAmount(p.montantTotal)} GNF</td>
                       <td className="px-3 py-2.5 text-green-600 whitespace-nowrap">{formatAmount(p.montantPaye)} GNF</td>
