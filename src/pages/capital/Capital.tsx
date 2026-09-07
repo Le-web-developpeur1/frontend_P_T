@@ -4,12 +4,11 @@ import { formatAmount } from '../../utils/formatAmount';
 import toast from 'react-hot-toast';
 import {
   FiTrendingUp, FiPackage, FiDollarSign, FiCreditCard,
-  FiAlertTriangle, FiBarChart2, FiRefreshCw, FiInfo, FiTruck
+  FiAlertTriangle, FiRefreshCw, FiInfo, FiTruck
 } from 'react-icons/fi';
 import useAutoRefresh from '../../hooks/useAutoRefresh';
 
 interface CapitalData {
-  capitalInitial:        number;
   chiffreAffairesEstime: number;
   stockFinal:            number;
   caisse:                number;
@@ -62,22 +61,13 @@ export default function Capital() {
 
   const cards = [
     {
-      label:   'Capital Initial',
-      value:   data.capitalInitial,
-      icon:    FiBarChart2,
-      color:   'text-blue-700',
-      bg:      'bg-blue-50',
-      border:  'border-blue-200',
-      tooltip: 'Valeur totale du stock au prix d\'achat'
-    },
-    {
       label:   'Chiffre d\'affaires estimé',
       value:   data.chiffreAffairesEstime,
       icon:    FiTrendingUp,
       color:   'text-green-700',
       bg:      'bg-green-50',
       border:  'border-green-200',
-      tooltip: 'Valeur totale du stock au prix de vente'
+      tooltip: 'Valeur totale après vente'
     },
     {
       label:   'Stock actuel',
@@ -86,7 +76,7 @@ export default function Capital() {
       color:   'text-indigo-700',
       bg:      'bg-indigo-50',
       border:  'border-indigo-200',
-      tooltip: 'Valeur actuelle du stock au prix d\'achat'
+      tooltip: 'Valeur actuelle du stock'
     },
     {
       label:   'Caisse',
@@ -155,20 +145,6 @@ export default function Capital() {
         </button>
       </div>
 
-      {/* Avertissement si purchasePricePerCarton manquant */}
-      {data.capitalInitial === 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
-          <FiAlertTriangle className="text-yellow-500 flex-shrink-0 mt-0.5" size={18} />
-          <div>
-            <p className="font-semibold text-yellow-800 text-sm">Prix d'achat manquants</p>
-            <p className="text-yellow-700 text-sm mt-1">
-              Le capital initial est à 0 car les produits n'ont pas encore de prix d'achat par carton renseigné.
-              Modifiez chaque produit pour ajouter ce champ.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Capital disponible — carte compacte */}
       <div className="bg-gradient-to-r from-[#1A2B5F] to-[#0f1a3a] rounded-2xl p-5 shadow-lg">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -207,8 +183,9 @@ export default function Capital() {
         {cards.map(({ label, value, icon: Icon, color, bg, border, tooltip }) => (
           <div key={label} className={`bg-white rounded-xl p-4 shadow-sm border ${border} relative group`}>
             <div className="flex items-start justify-between mb-3">
-              <div className={`${bg} rounded-lg p-2.5`}>
+              <div className={`${bg} rounded-lg p-3 flex gap-6`}>
                 <Icon className={color} size={20} />
+                 <p className="text-sm text-gray-500 mb-1 mr-3">{label}</p>
               </div>
               {/* Tooltip */}
               <div className="relative">
@@ -218,7 +195,6 @@ export default function Capital() {
                 </div>
               </div>
             </div>
-            <p className="text-xs text-gray-500 mb-1">{label}</p>
             <p className={`text-lg font-bold ${color}`}>{formatAmount(value)} GNF</p>
           </div>
         ))}

@@ -16,12 +16,7 @@ interface ProductForm {
   category: string;
   stockCartons: number;
   pricePerCarton: number;
-  purchasePricePerCarton: number;
   alertThreshold: number;
-  // FCFA
-  deviseAchat: 'FG' | 'FCFA';
-  purchasePriceFCFA: number;
-  tauxFCFA: number;
 }
 
 interface Product extends ProductForm {
@@ -32,17 +27,17 @@ interface StockForm {
   type: string;
   quantityCartons: number;
   reason: string;
-  purchasePrice?: number;
 }
 
 const emptyForm: ProductForm = {
-  name: '', category: '', stockCartons: 0,
+  name: '', 
+  category: '', 
+  stockCartons: 0,
   pricePerCarton: 0,
-  purchasePricePerCarton: 0, alertThreshold: 5,
-  deviseAchat: 'FG', purchasePriceFCFA: 0, tauxFCFA: 10,
+  alertThreshold: 5,
 };
 
-const emptyStockForm: StockForm = { type: 'entrée', quantityCartons: 0, reason: 'achat', purchasePrice: undefined };
+const emptyStockForm: StockForm = { type: 'entrée', quantityCartons: 0, reason: 'achat' };
 
 export default function Products() {
   const [products, setProducts]       = useState<Product[]>([]);
@@ -81,28 +76,7 @@ export default function Products() {
   useAutoRefresh(fetchProducts, 30000);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    const newForm = { ...form, [name]: value };
-
-    // Si devise = FCFA → recalcul automatique du prix en FG
-    if (name === 'purchasePriceFCFA' || name === 'tauxFCFA') {
-      const fcfa = Number(name === 'purchasePriceFCFA' ? value : form.purchasePriceFCFA);
-      const taux = Number(name === 'tauxFCFA'          ? value : form.tauxFCFA);
-      newForm.purchasePricePerCarton = fcfa * taux;
-    }
-
-    // Si on change la devise → reset les champs de conversion
-    if (name === 'deviseAchat') {
-      if (value === 'FG') {
-        newForm.purchasePriceFCFA      = 0;
-        newForm.purchasePricePerCarton = 0;
-      } else {
-        newForm.tauxFCFA               = tauxSysteme;
-        newForm.purchasePricePerCarton = 0;
-      }
-    }
-
-    setForm(newForm as ProductForm);
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleStockChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -110,18 +84,13 @@ export default function Products() {
 
   const openCreate = () => {
     setSelected(null);
-    setForm({ ...emptyForm, tauxFCFA: tauxSysteme });
+    setForm(emptyForm);
     setModalOpen(true);
   };
 
   const openEdit = (product: Product) => {
     setSelected(product);
-    setForm({
-      ...product,
-      deviseAchat:       'FG',
-      purchasePriceFCFA: 0,
-      tauxFCFA:          tauxSysteme,
-    });
+    setForm(product);
     setModalOpen(true);
   };
 
@@ -135,7 +104,7 @@ export default function Products() {
     }
     setSaving(true);
     try {
-      const { deviseAchat, purchasePriceFCFA, tauxFCFA, stockCartons, ...dataToSend } = form;
+      const { stockCartons, ...dataToSend } = form;
       if (selected) {
         await updateProduct(selected._id, dataToSend);
         toast.success('Produit mis à jour !');
@@ -162,11 +131,6 @@ export default function Products() {
         quantityCartons: stockForm.quantityCartons,
         reason: stockForm.reason
       };
-
-      //Ajouter le pruchasePrice seulement si type = "entrée" et prix fourni
-      if (stockForm.type === "entreée" && stockForm.purchasePrice) {
-        payload.purchasePrice = Number(stockForm.purchasePrice);
-      }
 
       await adjustStock(selected._id, payload);
       toast.success('Stock ajusté !');
@@ -254,10 +218,7 @@ export default function Products() {
         )}
       </div>
     )},
-    ...(user?.role === 'admin' ? [{
-      header: 'Prix achat/Carton',
-      render: (p: Product) => <span>{formatAmount(p.purchasePricePerCarton)} GNF</span>
-    }] : []),    { header: 'Prix vente/Carton', render: (p: Product) => <span>{formatAmount(p.pricePerCarton)} GNF</span> },
+    { header: 'Prix vente/Carton', render: (p: Product) => <span>{formatAmount(p.pricePerCarton)} GNF</span> },
     { header: 'Statut', render: (p: Product) => (
       <Badge
         label={p.stockCartons <= p.alertThreshold ? 'Stock bas' : 'OK'}
@@ -316,46 +277,6 @@ export default function Products() {
           <Input label="Nom du produit *" name="name" value={form.name} onChange={handleChange} required className="col-span-2" />
           <Input label="Catégorie" name="category" value={form.category} onChange={handleChange} />
           {!selected && ( <Input label="Nombre Total (cartons)" name="stockCartons" type="number" value={form.stockCartons} onChange={handleChange} /> )}
-          {/* ── Devise d'achat ─────────────────────────── */}
-          {user?.role === 'admin' && (
-            <div className="col-span-2">
-              <div className="border border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-blue-900">Prix d'achat par carton</p>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">Devise :</span>
-                    <select name="deviseAchat" value={form.deviseAchat} onChange={handleChange}
-                      className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900 bg-white">
-                      <option value="FG">Franc Guinéen (FG)</option>
-                      <option value="FCFA">Franc CFA (FCFA)</option>
-                    </select>
-                  </div>
-                </div>
-
-                { form.deviseAchat === 'FG' ? (
-                  <Input label="Prix d'achat par carton (FG)" name="purchasePricePerCarton"
-                    type="number" value={form.purchasePricePerCarton} onChange={handleChange} />
-                  ) : (
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input label="Prix d'achat (FCFA)" name="purchasePriceFCFA"
-                        type="number" value={form.purchasePriceFCFA} onChange={handleChange} />
-                      <Input label="Taux de change (1 FCFA = ? FG)" name="tauxFCFA"
-                        type="number" value={form.tauxFCFA} onChange={handleChange} />
-                      <div className="col-span-2">
-                        <label className="text-sm font-medium text-gray-700">Équivalent en FG (calculé automatiquement)</label>
-                        <div className="mt-1 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-bold text-blue-900">
-                          {formatAmount(form.purchasePricePerCarton)} FG
-                          <span className="text-xs font-normal text-blue-500 ml-2">
-                            ({formatAmount(form.purchasePriceFCFA)} FCFA × {form.tauxFCFA})
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
-              </div>
-            </div>
-          )}
 
           <Input label="Prix de vente par carton (FG) *" name="pricePerCarton" type="number" value={form.pricePerCarton} onChange={handleChange} required className="col-span-2" />
           <Input label="Seuil d'alerte (cartons)" name="alertThreshold" type="number" value={form.alertThreshold} onChange={handleChange} className="col-span-2" />
@@ -419,48 +340,6 @@ export default function Products() {
               <option value="ajustement">Ajustement (Définir une valeur exacte)</option>
             </select>
           </div>
-          {/**Affichagage pour modifier le prix d'achat */}
-          {/*NOUVEAU: Prix d'achat (seulement si type = "entrée") */}
-          {stockForm.type === 'entrée' && selected && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Prix d'achat unitaire (optionnel)
-              </label>
-              <input
-                type="number"
-                name="purchasePrice"
-                value={stockForm.purchasePrice || ''}
-                onChange={handleStockChange}
-                placeholder={`Prix actuel: ${formatAmount(selected.purchasePricePerCarton)} GNF`}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-900"
-              />
-              <p className="text-xs text-gray-500">
-                <strong>Laissez vide</strong> pour utiliser le prix actuel ({formatAmount(selected.purchasePricePerCarton)} GNF).
-                <br />
-                Sinon, entrez le <strong>nouveau prix d'achat</strong> pour ce lot.
-              </p>
-              
-              {/* Aperçu du CMP si prix saisi */}
-              {stockForm.purchasePrice && stockForm.quantityCartons > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-xs text-blue-700">
-                    <strong>Nouveau Coût Moyen Pondéré (CMP) :</strong>
-                    <br />
-                    {(() => {
-                      const valeurStockActuel = selected.stockCartons * selected.purchasePricePerCarton;
-                      const valeurNouveauLot = stockForm.quantityCartons * Number(stockForm.purchasePrice);
-                      const nouvelleQuantite = selected.stockCartons + stockForm.quantityCartons;
-                      const nouveauCMP = Math.round((valeurStockActuel + valeurNouveauLot) / nouvelleQuantite);
-                      return `${formatAmount(nouveauCMP)} GNF par carton`;
-                    })()}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-
-
 
 
           <div className="flex flex-col gap-1">
