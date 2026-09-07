@@ -235,12 +235,10 @@ export default function Products() {
           className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors" title="Modifier">
           <FiEdit2 size={15} />
         </button>
-        {user.role === 'admin' && (
           <button onClick={() => openDelete(p)}
             className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="Supprimer">
             <FiTrash2 size={15} />
           </button>
-        )}
       </div>
     )},
   ];
@@ -253,11 +251,9 @@ export default function Products() {
           <h1 className="text-2xl font-bold text-blue-900">Produits</h1>
           <p className="text-gray-500 text-sm">{products.length} produit(s) au total</p>
         </div>
-        {user.role === 'admin' && (
           <Button onClick={openCreate} variant="primary">
             <FiPlus size={18} /> Nouveau produit
           </Button>
-        )}
       </div>
 
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
@@ -313,7 +309,7 @@ export default function Products() {
               })}
               className="flex-1 px-3 py-2 bg-yellow-50 border border-yellow-300 text-yellow-700 text-sm font-medium rounded-lg hover:bg-yellow-100 transition-colors"
             >
-              🔄 Mettre à 0
+             Mettre à 0
             </button>
             <button
               onClick={() => setStockForm({ 
@@ -323,7 +319,7 @@ export default function Products() {
               })}
               className="flex-1 px-3 py-2 bg-red-50 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100 transition-colors"
             >
-              ⬇️ Tout retirer
+              Tout retirer
             </button>
           </div>
           
